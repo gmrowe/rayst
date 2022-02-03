@@ -5,7 +5,7 @@ A toy ray tracer written in Rust.
 ## Description
 
 This repo contains a ray tracer implemented in a TDD style going through the book [The Ray Tracer Callenge:
-A tTest-Driven Guide to Your First 3D Renderer][1] by Jamis Buck.
+A Test-Driven Guide to Your First 3D Renderer][1] by Jamis Buck.
 
 ## Getting Started
 
@@ -19,9 +19,9 @@ If you have a rust compiler and Cargo installed:
 
 * clone the repository
 * cd into the newly created directory and execute:
-  ```
-  cargo build
-  ```
+```
+cargo build
+```
 
 ### Executing program
 
