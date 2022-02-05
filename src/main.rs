@@ -182,10 +182,7 @@ impl Div<f64> for Tup {
     type Output = Self;
 
     fn div(self, scalar: f64) -> Self::Output {
-        if nearly_eq(scalar, 0.0) {
-            panic!("Cannot divide by zero!");
-        }
-
+        assert!(!nearly_eq(scalar, 0.0), "Cannot divide by zero");
         Self::new(
             self.x / scalar,
             self.y / scalar,
