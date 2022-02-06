@@ -1,61 +1,155 @@
+use std::ops::{Add, Sub, Mul};
+
 mod tup;
 
-use tup::Tup;
-
 fn main() {
-    use std::iter::successors;
-    let projectile = Projectile::new(
-        Tup::point(0.0, 1.0, 0.0),
-        Tup::vector(1.0, 1.0, 0.0).normalize()
-    );
-
-    let environment = Environment::new(
-        Tup::vector(0.0, -0.1, 0.0),
-        Tup::vector(-0.02, 0.01, 0.0),
-    );
-
-    let final_pos =
-        successors(Some(projectile), |p| Some(environment.tick(p)))
-        .take_while(|p| p.pos.y > 0.0)
-        .last()
-        .expect("No y values > 0")
-        .pos;
-
-    println!("Final position: {:?}", final_pos);
+    println!("Hello World!");
 }
 
-struct Projectile {
-    pos: Tup, // Point
-    vel: Tup, // Vector
+fn nearly_eq(a: f64, b: f64) -> bool {
+    (a - b).abs() < f64::EPSILON
 }
 
-impl Projectile {
-    fn new(pos: Tup, vel: Tup) -> Self {
-        assert!(pos.is_point(), "Position must be a point");
-        assert!(vel.is_vector(), "Velocity must be a vector");
+#[derive(Debug, Copy, Clone)]
+struct Color {
+    red: f64,
+    green: f64,
+    blue: f64,
+}
+
+impl Color {
+    fn new(r: f64, g: f64, b: f64) -> Self {
         Self {
-            pos, vel
+            red: r,
+            green: g,
+            blue: b,
         }
+    }
+
+    fn red(&self) -> f64 {
+        self.red
+    }
+
+    fn green(&self) -> f64 {
+        self.green
+    }
+
+    fn blue(&self) -> f64 {
+        self.blue
     }
 }
 
-struct Environment {
-    gravity: Tup, // Vector
-    wind: Tup,    // Vector 
+impl Add for Color {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        Color::new(
+            self.red() + other.red(),
+            self.green() + other.green(),
+            self.blue() + other.blue(),
+        )
+    }
 }
 
-impl Environment {
-    fn new(gravity: Tup, wind: Tup) -> Self {
-        assert!(gravity.is_vector(), "Gravity must be a vector");
-        assert!(wind.is_vector(), "Wind must be a vector");
-        Self {
-            gravity, wind
-        }
+impl Sub for Color {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Self::new(
+            self.red() - other.red(),
+            self.green() - other.green(),
+            self.blue() - other.blue(),
+        )
+    }
+}
+
+impl PartialEq for Color {
+    fn eq(&self, other: &Self) -> bool {
+        nearly_eq(self.red(), other.red())
+            && nearly_eq(self.green(), other.green())
+            && nearly_eq(self.blue(), other.blue())            
+    }
+}
+
+impl Mul<f64> for Color {
+    type Output = Self;
+
+    fn mul(self, scalar: f64) -> Self::Output {
+        Self::new(
+            self.red() * scalar,
+            self.green()  * scalar,
+            self.blue() * scalar
+        )
+    }
+}
+
+impl Mul<Color> for Color {
+    type Output = Self;
+
+    fn mul(self, other: Color) -> Self::Output {
+        Self::new(
+            self.red() * other.red(),
+            self.green() * other.green(),
+            self.blue() * other.blue()
+        )
+    }
+}
+
+
+#[cfg(test)]
+mod color_tests {
+    use super::*;
+
+    fn assert_nearly_eq(a: f64, b: f64) {
+        assert!((a - b).abs() < f64::EPSILON);
     }
     
-    fn tick(&self, proj: &Projectile) -> Projectile {
-        let new_pos = proj.pos + proj.vel;
-        let new_vel = proj.vel + self.gravity + self.wind;
-        Projectile::new(new_pos, new_vel)
+    #[test]
+    fn colors_have_a_red_component() {
+        let color = Color::new(-0.5, 0.4, 1.7);
+        assert_nearly_eq(-0.5, color.red())
+    }
+
+    #[test]
+    fn colors_have_a_green_component() {
+        let color = Color::new(-0.5, 0.4, 1.7);
+        assert_nearly_eq(0.4, color.green())
+    }
+
+    #[test]
+    fn colors_have_a_blue_component() {
+        let color = Color::new(-0.5, 0.4, 1.7);
+        assert_nearly_eq(1.7, color.blue())
+    }
+
+    #[test]
+    fn colors_can_be_added() {
+        let c1 = Color::new(0.9, 0.6, 0.75);
+        let c2 = Color::new(0.7, 0.1, 0.25);
+        let expected = Color::new(1.6, 0.7, 1.0);
+        assert_eq!(expected, c1 + c2);
+    }
+
+    #[test]
+    fn colors_can_be_subtracted() {
+        let c1 = Color::new(0.9, 0.6, 0.75);
+        let c2 = Color::new(0.7, 0.1, 0.25);
+        let expected = Color::new(0.2, 0.5, 0.5);
+        assert_eq!(expected, c1 - c2);
+    }
+
+    #[test]
+    fn colors_can_be_multiplied_by_a_scalar() {
+        let c = Color::new(0.2, 0.3, 0.4);
+        let expected = Color::new(0.4, 0.6, 0.8);
+        assert_eq!(expected, c * 2.0);
+    }
+
+    #[test]
+    fn colors_can_be_multiplied_by_a_color() {
+        let c1 = Color::new(1.0, 0.2, 0.4);
+        let c2 = Color::new(0.9, 1.0, 0.1);
+        let expected = Color::new(0.9, 0.2, 0.04);
+        assert_eq!(expected, c1 * c2);
     }
 }
