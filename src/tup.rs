@@ -1,9 +1,5 @@
 use std::ops::{Add, Sub, Neg, Mul, Div};
-
-
-fn nearly_eq(a: f64, b: f64) -> bool {
-    (a - b).abs() < f64::EPSILON
-}
+use crate::math_helpers::nearly_eq;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Tup {

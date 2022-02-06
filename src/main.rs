@@ -1,14 +1,12 @@
-use std::ops::{Add, Sub, Mul};
-
 mod tup;
+mod math_helpers;
 
 fn main() {
     println!("Hello World!");
 }
 
-fn nearly_eq(a: f64, b: f64) -> bool {
-    (a - b).abs() < f64::EPSILON
-}
+use std::ops::{Add, Sub, Mul};
+use math_helpers::nearly_eq;
 
 #[derive(Debug, Copy, Clone)]
 struct Color {
