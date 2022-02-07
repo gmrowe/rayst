@@ -1,31 +1,31 @@
 use crate::color::Color;
 
-struct Canvas {
+pub struct Canvas {
     width: usize,
     pixels: Vec<Color>,
 }
 
 impl Canvas {
-    fn new(width: usize, height: usize) -> Self {
+    pub fn new(width: usize, height: usize) -> Self {
         let pixels = vec![Color::new(0.0, 0.0, 0.0); width * height];
         Self { width, pixels }
     }
 
-    fn width(&self) -> usize {
+    pub fn width(&self) -> usize {
         self.width
     }
 
-    fn height(&self) -> usize {
+    pub fn height(&self) -> usize {
         self.pixels.len() / self.width
     }
 
-    fn pixels(&self) -> Pixels {
+    pub fn pixels(&self) -> Pixels {
         Pixels {
             pixels: self.pixels.iter(),
         }
     }
 
-    fn pixels_mut(&mut self) -> PixelsMut {
+    pub fn pixels_mut(&mut self) -> PixelsMut {
         PixelsMut {
             pixels: self.pixels.iter_mut(),
         }
@@ -35,13 +35,13 @@ impl Canvas {
         y * self.width + x
     }
 
-    fn write_pixel(mut self, x: usize, y: usize, c: Color) -> Self {
+    pub fn write_pixel(mut self, x: usize, y: usize, c: Color) -> Self {
         let i = self.index(x, y);
         self.pixels[i] = c;
         self
     }
 
-    fn pixel_at(&self, x: usize, y: usize) -> Color {
+    pub fn pixel_at(&self, x: usize, y: usize) -> Color {
         self.pixels[self.index(x, y)]
     }
 
@@ -60,7 +60,7 @@ impl Canvas {
         }
     }
 
-    fn to_ppm(&self) -> String {
+    pub fn to_ppm(&self) -> String {
         const MAX_LINE_LEN: usize = 70;
         let header = format!("P3\n{} {}\n255", self.width(), self.height());
         let mut ppm_lines = Vec::new();
@@ -79,7 +79,7 @@ impl Canvas {
     }
 }
 
-struct Pixels<'a> {
+pub struct Pixels<'a> {
     pixels: std::slice::Iter<'a, Color>,
 }
 
@@ -91,7 +91,7 @@ impl<'a> Iterator for Pixels<'a> {
     }
 }
 
-struct PixelsMut<'a> {
+pub struct PixelsMut<'a> {
     pixels: std::slice::IterMut<'a, Color>,
 }
 
@@ -103,6 +103,7 @@ impl<'a> Iterator for PixelsMut<'a> {
     }
 }
 
+#[cfg(test)]
 mod canvas_tests {
     use super::*;
 
