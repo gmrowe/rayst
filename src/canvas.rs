@@ -52,7 +52,7 @@ impl Canvas {
         if s.chars().count() < max_len {
             s.to_string()
         } else {
-            let break_index = s.rmatch_indices(" ")
+            let break_index = s.rmatch_indices(' ')
                 .find(|(i, _)| *i < max_len)
                 .map(|(i, _)| i)
                 .unwrap_or(max_len - 1);
@@ -68,7 +68,7 @@ impl Canvas {
         let mut ppm_lines = Vec::new();
         for line in self.pixels.chunks(self.width()) {
             let mut triples = Vec::new();
-            for pixel in line.into_iter() {
+            for pixel in line.iter() {
                 let (r, g, b) = pixel.to_byte_triple();
                 triples.push(format!("{} {} {}", r, g, b));
             }

@@ -29,7 +29,7 @@ impl Color {
         self.blue
     }
 
-    pub fn to_byte_triple(&self) -> (u8, u8, u8) {
+    pub fn to_byte_triple(self) -> (u8, u8, u8) {
         const MAX_SUBPIXEL_VALUE: f64 = 255.0;
         let normalize = |subpixel: f64| {
             (subpixel.clamp(0.0, 1.0) * MAX_SUBPIXEL_VALUE).round() as u8
