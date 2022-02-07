@@ -48,16 +48,6 @@ impl Canvas {
         self.pixels[self.index(x, y)]       
     }
 
-    // TODO: Move this to the color module to be a method of the
-    //       color struct implementation.
-    fn color_to_byte_triple(c: &Color) -> (u8, u8, u8) {
-        const MAX_SUBPIXEL_VALUE: f64 = 255.0;
-        let normalize = |subpixel: f64| {
-            (subpixel.clamp(0.0, 1.0) * MAX_SUBPIXEL_VALUE).round() as u8
-        };
-        (normalize(c.red()), normalize(c.green()), normalize(c.blue()))
-    }
-
     fn break_line(s: &str, max_len: usize) -> String {
         if s.chars().count() < max_len {
             s.to_string()
@@ -79,7 +69,7 @@ impl Canvas {
         for line in self.pixels.chunks(self.width()) {
             let mut triples = Vec::new();
             for pixel in line.into_iter() {
-                let (r, g, b) = Self::color_to_byte_triple(pixel);
+                let (r, g, b) = pixel.to_byte_triple();
                 triples.push(format!("{} {} {}", r, g, b));
             }
             let pixel_line = triples.join(" ");
