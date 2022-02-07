@@ -1,5 +1,5 @@
-use std::ops::{Add, Sub, Neg, Mul, Div};
 use crate::math_helpers::nearly_eq;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Tup {
@@ -10,12 +10,15 @@ pub struct Tup {
 }
 
 impl Tup {
-    const ZERO: Self = Self { x: 0.0, y: 0.0, z: 0.0, w: 0.0};
-    
+    const ZERO: Self = Self {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+        w: 0.0,
+    };
+
     pub fn new(x: f64, y: f64, z: f64, w: f64) -> Self {
-        Self {
-            x, y, z, w
-        }
+        Self { x, y, z, w }
     }
 
     pub fn point(x: f64, y: f64, z: f64) -> Self {
@@ -36,10 +39,7 @@ impl Tup {
 
     pub fn magnitude(self) -> f64 {
         let sum_of_squares =
-            self.x.powf(2.0)
-            + self.y.powf(2.0)
-            + self.z.powf(2.0)
-            + self.w.powf(2.0);
+            self.x.powf(2.0) + self.y.powf(2.0) + self.z.powf(2.0) + self.w.powf(2.0);
 
         sum_of_squares.sqrt()
     }
@@ -49,17 +49,14 @@ impl Tup {
     }
 
     pub fn dot(self, other: Self) -> f64 {
-        self.x * other.x +
-            self.y * other.y +
-            self.z * other.z +
-            self.w * other.w
+        self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
 
     pub fn cross(self, other: Self) -> Self {
         Self::vector(
             self.y * other.z - self.z * other.y,
             self.z * other.x - self.x * other.z,
-            self.x * other.y - self.y * other.x
+            self.x * other.y - self.y * other.x,
         )
     }
 }
@@ -81,11 +78,10 @@ impl Add for Tup {
             self.x + other.x,
             self.y + other.y,
             self.z + other.z,
-            self.w + other.w
+            self.w + other.w,
         )
     }
 }
-
 
 impl Sub for Tup {
     type Output = Self;
@@ -95,7 +91,7 @@ impl Sub for Tup {
             self.x - other.x,
             self.y - other.y,
             self.z - other.z,
-            self.w - other.w
+            self.w - other.w,
         )
     }
 }
@@ -116,7 +112,7 @@ impl Mul<f64> for Tup {
             self.x * scalar,
             self.y * scalar,
             self.z * scalar,
-            self.w * scalar
+            self.w * scalar,
         )
     }
 }
@@ -130,7 +126,7 @@ impl Div<f64> for Tup {
             self.x / scalar,
             self.y / scalar,
             self.z / scalar,
-            self.w / scalar
+            self.w / scalar,
         )
     }
 }
@@ -215,7 +211,7 @@ mod tup_tests {
         let v1 = Tup::point(1.0, -2.0, 3.5);
         let v2 = Tup::point(1.0, -2.0, 3.5);
         assert!(v1 == v2);
-    }    
+    }
 
     #[test]
     fn vectors_and_points_are_not_equal() {
@@ -349,7 +345,7 @@ mod tup_tests {
         let expected = Tup::vector(
             1.0 / 14.0_f64.sqrt(),
             2.0 / 14.0_f64.sqrt(),
-            3.0 / 14.0_f64.sqrt()
+            3.0 / 14.0_f64.sqrt(),
         );
         assert_eq!(expected, v.normalize());
     }
@@ -375,5 +371,4 @@ mod tup_tests {
         assert_eq!(Tup::vector(-1.0, 2.0, -1.0), a.cross(b));
         assert_eq!(Tup::vector(1.0, -2.0, 1.0), b.cross(a));
     }
-
 }

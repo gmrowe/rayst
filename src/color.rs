@@ -1,5 +1,5 @@
-use std::ops::{Add, Sub, Mul};
 use crate::math_helpers::nearly_eq;
+use std::ops::{Add, Mul, Sub};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Color {
@@ -31,13 +31,14 @@ impl Color {
 
     pub fn to_byte_triple(self) -> (u8, u8, u8) {
         const MAX_SUBPIXEL_VALUE: f64 = 255.0;
-        let normalize = |subpixel: f64| {
-            (subpixel.clamp(0.0, 1.0) * MAX_SUBPIXEL_VALUE).round() as u8
-        };
-        (normalize(self.red()),
-         normalize(self.green()),
-         normalize(self.blue()))
-    }    
+        let normalize =
+            |subpixel: f64| (subpixel.clamp(0.0, 1.0) * MAX_SUBPIXEL_VALUE).round() as u8;
+        (
+            normalize(self.red()),
+            normalize(self.green()),
+            normalize(self.blue()),
+        )
+    }
 }
 
 impl Add for Color {
@@ -68,7 +69,7 @@ impl PartialEq for Color {
     fn eq(&self, other: &Self) -> bool {
         nearly_eq(self.red(), other.red())
             && nearly_eq(self.green(), other.green())
-            && nearly_eq(self.blue(), other.blue())            
+            && nearly_eq(self.blue(), other.blue())
     }
 }
 
@@ -78,8 +79,8 @@ impl Mul<f64> for Color {
     fn mul(self, scalar: f64) -> Self::Output {
         Self::new(
             self.red() * scalar,
-            self.green()  * scalar,
-            self.blue() * scalar
+            self.green() * scalar,
+            self.blue() * scalar,
         )
     }
 }
@@ -91,11 +92,10 @@ impl Mul<Color> for Color {
         Self::new(
             self.red() * other.red(),
             self.green() * other.green(),
-            self.blue() * other.blue()
+            self.blue() * other.blue(),
         )
     }
 }
-
 
 #[cfg(test)]
 mod color_tests {
@@ -104,7 +104,7 @@ mod color_tests {
     fn assert_nearly_eq(a: f64, b: f64) {
         assert!((a - b).abs() < f64::EPSILON);
     }
-    
+
     #[test]
     fn colors_have_a_red_component() {
         let color = Color::new(-0.5, 0.4, 1.7);
@@ -154,4 +154,3 @@ mod color_tests {
         assert_eq!(expected, c1 * c2);
     }
 }
-

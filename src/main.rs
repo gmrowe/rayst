@@ -1,9 +1,8 @@
 mod canvas;
 mod color;
-mod tup;
 mod math_helpers;
+mod tup;
 
 fn main() {
     println!("Hello World!");
 }
-

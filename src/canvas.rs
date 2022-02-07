@@ -8,10 +8,7 @@ struct Canvas {
 impl Canvas {
     fn new(width: usize, height: usize) -> Self {
         let pixels = vec![Color::new(0.0, 0.0, 0.0); width * height];
-        Self {
-            width,
-            pixels,
-        }
+        Self { width, pixels }
     }
 
     fn width(&self) -> usize {
@@ -45,14 +42,15 @@ impl Canvas {
     }
 
     fn pixel_at(&self, x: usize, y: usize) -> Color {
-        self.pixels[self.index(x, y)]       
+        self.pixels[self.index(x, y)]
     }
 
     fn break_line(s: &str, max_len: usize) -> String {
         if s.chars().count() < max_len {
             s.to_string()
         } else {
-            let break_index = s.rmatch_indices(' ')
+            let break_index = s
+                .rmatch_indices(' ')
                 .find(|(i, _)| *i < max_len)
                 .map(|(i, _)| i)
                 .unwrap_or(max_len - 1);
@@ -85,7 +83,7 @@ struct Pixels<'a> {
     pixels: std::slice::Iter<'a, Color>,
 }
 
-impl <'a> Iterator for Pixels<'a> {
+impl<'a> Iterator for Pixels<'a> {
     type Item = &'a Color;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -97,7 +95,7 @@ struct PixelsMut<'a> {
     pixels: std::slice::IterMut<'a, Color>,
 }
 
-impl <'a> Iterator for PixelsMut<'a> {
+impl<'a> Iterator for PixelsMut<'a> {
     type Item = &'a mut Color;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -106,7 +104,7 @@ impl <'a> Iterator for PixelsMut<'a> {
 }
 
 mod canvas_tests {
-     use super::*;
+    use super::*;
 
     #[test]
     fn a_canvas_stores_its_width() {
@@ -154,17 +152,13 @@ mod canvas_tests {
             .write_pixel(2, 1, c2)
             .write_pixel(4, 2, c3);
         let ppm = c.to_ppm();
-        let lines_4_to_6: Vec<&str> = ppm.lines()
-            .skip(3)
-            .take(3)
-            .collect();
+        let lines_4_to_6: Vec<&str> = ppm.lines().skip(3).take(3).collect();
         let expected = vec![
             "255 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
             "0 0 0 0 0 0 0 128 0 0 0 0 0 0 0",
-            "0 0 0 0 0 0 0 0 0 0 0 0 0 0 255"
+            "0 0 0 0 0 0 0 0 0 0 0 0 0 0 255",
         ];
         assert_eq!(expected, lines_4_to_6);
-        
     }
 
     #[test]
@@ -175,15 +169,12 @@ mod canvas_tests {
             *pixel = color;
         }
         let ppm = c.to_ppm();
-        let lines_4_to_7: Vec<&str> = ppm.lines()
-            .skip(3)
-            .take(4)
-            .collect();
+        let lines_4_to_7: Vec<&str> = ppm.lines().skip(3).take(4).collect();
         let expected = vec![
             "255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204",
             "153 255 204 153 255 204 153 255 204 153 255 204 153",
             "255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204",
-            "153 255 204 153 255 204 153 255 204 153 255 204 153"
+            "153 255 204 153 255 204 153 255 204 153 255 204 153",
         ];
         assert_eq!(expected, lines_4_to_7);
     }
