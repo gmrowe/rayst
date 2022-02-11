@@ -1,8 +1,9 @@
 use crate::math_helpers::nearly_eq;
+use crate::tup::Tup;
 use std::ops::{Index, IndexMut, Mul} ;
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Mat4 {
    data: Vec<f64>,
 }
@@ -21,6 +22,14 @@ impl Mat4 {
         Mat4::from_data(&vec![0.0; Self::WIDTH * Self::WIDTH])
     }
 
+    fn identity_matrix() -> Self {
+        Self::from_data(&vec![
+            1.0, 0.0, 0.0, 0.0, 
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0,
+        ])
+    }
 }
 
 impl Index<(usize, usize)> for Mat4 {
@@ -62,6 +71,23 @@ impl Mul for Mat4 {
             }
         }
         m
+    }
+}
+
+impl Mul<Tup> for Mat4 {
+    type Output = Tup;
+
+    fn mul(self, other: Tup) -> Self::Output {
+        let mut t_data = Vec::new();
+        for row in 0..Self::WIDTH {
+            let coord =
+                self[(row, 0)] * other.x
+                + self[(row, 1)] * other.y
+                + self[(row, 2)] * other.z
+                + self[(row, 3)] * other.w;
+            t_data.push(coord);
+        }
+        Tup::new(t_data[0], t_data[1], t_data[2], t_data[3])
     }
 }
 
@@ -124,7 +150,7 @@ impl Index<(usize, usize)> for Mat3 {
 #[cfg(test)]
 mod matrix_tests  {
     use super::*;
-    
+
     #[test]
     fn construct_and_inspect_a_4x4_matrix() {
         let data = vec![
@@ -156,7 +182,7 @@ mod matrix_tests  {
     }
 
     #[test]
-    fn identical_matrixes_are_equal() {
+    fn identical_matrices_are_equal() {
         let m1 = Mat4::from_data(&vec![
             1.0, 2.0, 3.0, 4.0,
             5.0, 6.0, 7.0, 8.0,
@@ -173,7 +199,7 @@ mod matrix_tests  {
     }
 
     #[test]
-    fn different_matrixes_are_not_equal() {
+    fn different_matrices_are_not_equal() {
         let m1 = Mat4::from_data(&vec![
             1.0, 2.0, 3.0, 4.0,
             5.0, 6.0, 7.0, 8.0,
@@ -190,7 +216,7 @@ mod matrix_tests  {
     }
 
     #[test]
-    fn matrices_can_be_multiplied() {
+    fn matrices_can_be_multiplied_by_other_matrices() {
         let m1 = Mat4::from_data(&vec![
             1.0, 2.0, 3.0, 4.0,
             5.0, 6.0, 7.0, 8.0,
@@ -211,5 +237,30 @@ mod matrix_tests  {
             16.0, 26.0, 46.0,  42.0
         ]);
         assert_eq!(expected, m1 * m2);
-    }    
+    }
+
+    #[test]
+    fn matrices_can_be_multiplied_by_tuples() {
+        let m =  Mat4::from_data(&vec![
+            1.0, 2.0, 3.0, 4.0,
+            2.0, 4.0, 4.0, 2.0,
+            8.0, 6.0, 4.0, 1.0,
+            0.0, 0.0, 0.0, 1.0
+        ]);
+        let t = Tup::new(1.0, 2.0, 3.0, 1.0);
+        let expected = Tup::new(18.0, 24.0, 33.0, 1.0);
+        assert_eq!(expected, m * t);
+    }
+
+    #[test]
+    fn multiplying_a_matrix_by_identity_matrix_yields_original() {
+        let m =  Mat4::from_data(&vec![
+            0.0, 1.0, 2.0, 4.0,
+            1.0, 2.0, 4.0, 8.0,
+            2.0, 4.0, 8.0, 16.0,
+            4.0, 8.0, 16.0, 32.0
+        ]);
+        let result = m.clone() * Mat4::identity_matrix();
+        assert_eq!(m, result);
+    }
 }
