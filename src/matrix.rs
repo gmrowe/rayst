@@ -2,24 +2,23 @@ use crate::math_helpers::nearly_eq;
 use crate::tup::Tup;
 use std::ops::{Index, IndexMut, Mul} ;
 
-
 #[derive(Debug, Clone)]
 pub struct Mat4 {
    data: Vec<f64>,
 }
 
 impl Mat4 {
-    const WIDTH: usize = 4;
+    const SIZE: usize = 4;
    
     pub fn from_data( data: &[f64]) -> Self {
-        assert!(data.len() == Self::WIDTH * Self::WIDTH);
+        assert!(data.len() == Self::SIZE * Self::SIZE);
         Self {
             data: data.iter().cloned().collect(),
         }
     }
     
     pub fn new() -> Self {
-        Mat4::from_data(&vec![0.0; Self::WIDTH * Self::WIDTH])
+        Mat4::from_data(&vec![0.0; Self::SIZE * Self::SIZE])
     }
 
     pub fn identity_matrix() -> Self {
@@ -33,8 +32,8 @@ impl Mat4 {
 
     pub fn transpose(&self) -> Self {
         let mut transposed = Mat4::new();
-        for row in 0..Self::WIDTH {
-            for col in 0..Self::WIDTH {
+        for row in 0..Self::SIZE {
+            for col in 0..Self::SIZE {
                 transposed[(row, col)] = self[(col, row)];
             }
         }
@@ -43,8 +42,8 @@ impl Mat4 {
 
     fn submatrix(&self, row_to_remove: usize, col_to_remove: usize) -> Mat3 {
         let mut sub = Vec::new();
-        for row in 0..Self::WIDTH {
-            for col in 0..Self::WIDTH {
+        for row in 0..Self::SIZE {
+            for col in 0..Self::SIZE {
                 if row != row_to_remove && col != col_to_remove {
                     sub.push(self[(row, col)]);
                 }
@@ -66,7 +65,7 @@ impl Mat4 {
     fn determinant(&self) -> f64 {
         let mut determinant = 0.0;
         let row = 0;
-        for col in 0..Self::WIDTH {
+        for col in 0..Self::SIZE {
             determinant += self[(row, col)] * self.cofactor(row, col);
         }
         determinant
@@ -80,32 +79,29 @@ impl Mat4 {
         assert!(self.is_invertable());
         let mut inverse = Self::new();
         let determinant = self.determinant();
-        for row in 0..Self::WIDTH {
-            for col in 0..Self::WIDTH {
+        for row in 0..Self::SIZE {
+            for col in 0..Self::SIZE {
                 let c = self.cofactor(row, col);
                 inverse[(col, row)] = c / determinant;
             }
         }
         inverse
     }
-
 }
 
 impl Index<(usize, usize)> for Mat4 {
     type Output = f64;
 
     fn index(&self, (row, col): (usize, usize)) -> &Self::Output {
-        &self.data[row * Self::WIDTH + col]
+        &self.data[row * Self::SIZE + col]
     }
 }
-
 
 impl IndexMut<(usize, usize)> for Mat4 {
     fn index_mut(&mut self, (row, col): (usize, usize)) -> &mut Self::Output {
-        &mut self.data[row * Self::WIDTH + col]
+        &mut self.data[row * Self::SIZE + col]
     }
 }
-
 
 impl PartialEq for Mat4 {
     fn eq(&self, other: &Self) -> bool {
@@ -120,8 +116,8 @@ impl Mul for Mat4 {
 
     fn mul(self, other: Self) -> Self::Output {
         let mut m = Mat4::new();
-        for row in 0..Self::WIDTH {
-            for col in 0..Self::WIDTH {
+        for row in 0..Self::SIZE {
+            for col in 0..Self::SIZE {
                 m[(row, col)] =
                     self[(row, 0)]  * other[(0, col)]
                     + self[(row, 1)]  * other[(1, col)]
@@ -138,7 +134,7 @@ impl Mul<Tup> for Mat4 {
 
     fn mul(self, other: Tup) -> Self::Output {
         let mut t_data = Vec::new();
-        for row in 0..Self::WIDTH {
+        for row in 0..Self::SIZE {
             let coord =
                 self[(row, 0)] * other.x
                 + self[(row, 1)] * other.y
@@ -150,16 +146,16 @@ impl Mul<Tup> for Mat4 {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Mat3 {
     data: Vec<f64>,
 }
 
 impl Mat3 {
-    const WIDTH: usize = 3;
+    const SIZE: usize = 3;
 
     fn from_data(data: &[f64]) -> Self {
-        assert!(data.len() == Self::WIDTH * Self::WIDTH);
+        assert!(data.len() == Self::SIZE * Self::SIZE);
         Self {
             data: data.iter().cloned().collect(),
         }
@@ -171,8 +167,8 @@ impl Mat3 {
 
     fn submatrix(&self, row_to_remove: usize, col_to_remove: usize) -> Mat2 {
         let mut sub = Vec::new();
-        for row in 0..Self::WIDTH {
-            for col in 0..Self::WIDTH {
+        for row in 0..Self::SIZE {
+            for col in 0..Self::SIZE {
                 if row != row_to_remove && col != col_to_remove {
                     sub.push(self[(row, col)]);
                 }
@@ -194,19 +190,18 @@ impl Mat3 {
     fn determinant(&self) -> f64 {
         let mut determinant = 0.0;
         let row = 0;
-        for col in 0..Self::WIDTH {
+        for col in 0..Self::SIZE {
             determinant += self[(row, col)] * self.cofactor(row, col);
         }
         determinant
     }
-
 }
 
 impl Index<(usize, usize)> for Mat3 {
     type Output = f64;
 
     fn index(&self, (row, col): (usize, usize)) -> &Self::Output {
-        &self.data[row * Self::WIDTH + col]
+        &self.data[row * Self::SIZE + col]
     }
 }
 
@@ -219,16 +214,16 @@ impl PartialEq for Mat3 {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Mat2 {
     data: Vec<f64>,
 }
 
 impl Mat2 {
-    const WIDTH: usize = 2;
+    const SIZE: usize = 2;
 
     fn from_data(data: &[f64]) -> Self {
-        assert!(data.len() == Self::WIDTH * Self::WIDTH);
+        assert!(data.len() == Self::SIZE * Self::SIZE);
         Self {
             data: data.iter().cloned().collect(),
         }
@@ -251,7 +246,7 @@ impl Index<(usize, usize)> for Mat2 {
     type Output = f64;
 
     fn index(&self, (row, col): (usize, usize)) -> &Self::Output {
-        &self.data[row * Self::WIDTH + col]
+        &self.data[row * Self::SIZE + col]
     }
 }
 
