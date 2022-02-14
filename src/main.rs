@@ -1,9 +1,10 @@
 mod canvas;
 mod color;
 mod math_helpers;
-mod tup;
-mod transforms;
 mod matrix;
+mod rays;
+mod transforms;
+mod tup;
 
 use canvas::Canvas;
 use color::Color;
