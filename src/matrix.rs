@@ -237,7 +237,7 @@ impl Mat2 {
         // | a, b |
         // | c, d |
         // ad - bc == determinant
-        self.data[0] * self.data[3] - self.data[1] * self.data[2]
+        self[(0, 0)] * self[(1, 1)] - self[(0, 1)] * self[(1, 0)]
     }
 
 }
