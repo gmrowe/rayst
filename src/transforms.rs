@@ -1,7 +1,4 @@
 use crate::matrix::Mat4;
-use crate::tup::Tup;
-
-use std::f64::consts;
 
 pub fn translation(dx: f64, dy: f64, dz: f64) -> Mat4 {
     let mut mat = Mat4::identity_matrix();
@@ -74,7 +71,9 @@ pub fn shearing(dx_y: f64, dx_z: f64, dy_x: f64, dy_z: f64, dz_x: f64, dz_y: f64
 #[cfg(test)]
 mod tramsforms_test {
     use super::*;
-
+    use crate::tup::Tup;
+    use std::f64::consts;
+    
     #[test]
     fn multiplying_by_translation_matrix_moves_point() {
         let transform: Mat4 = translation(5.0, -3.0, 2.0);
