@@ -8,7 +8,7 @@ pub struct Mat4 {
 }
 
 impl Mat4 {
-    const SIZE: usize = 4;
+    pub const SIZE: usize = 4;
    
     pub fn from_data( data: &[f64]) -> Self {
         assert!(data.len() == Self::SIZE * Self::SIZE);
