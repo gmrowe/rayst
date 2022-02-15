@@ -3,6 +3,7 @@ mod color;
 mod math_helpers;
 mod matrix;
 mod rays;
+mod spheres;
 mod transforms;
 mod tup;
 
