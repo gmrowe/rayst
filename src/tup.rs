@@ -37,7 +37,7 @@ impl Tup {
         nearly_eq(self.w, 0.0)
     }
 
-    pub fn magnitude(self) -> f64 {
+    pub fn magnitude(&self) -> f64 {
         let sum_of_squares =
             self.x.powf(2.0) + self.y.powf(2.0) + self.z.powf(2.0) + self.w.powf(2.0);
 
@@ -48,11 +48,11 @@ impl Tup {
         self / self.magnitude()
     }
 
-    pub fn dot(self, other: Self) -> f64 {
+    pub fn dot(&self, other: &Self) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
 
-    pub fn cross(self, other: Self) -> Self {
+    pub fn cross(&self, other: &Self) -> Self {
         Self::vector(
             self.y * other.z - self.z * other.y,
             self.z * other.x - self.x * other.z,
@@ -361,14 +361,14 @@ mod tup_tests {
         let a = Tup::vector(1.0, 2.0, 3.0);
         let b = Tup::vector(2.0, 3.0, 4.0);
         let expected = 20.0;
-        assert_nearly_eq(expected, a.dot(b));
+        assert_nearly_eq(expected, a.dot(&b));
     }
 
     #[test]
     fn two_vectors_have_a_cross_product() {
         let a = Tup::vector(1.0, 2.0, 3.0);
         let b = Tup::vector(2.0, 3.0, 4.0);
-        assert_eq!(Tup::vector(-1.0, 2.0, -1.0), a.cross(b));
-        assert_eq!(Tup::vector(1.0, -2.0, 1.0), b.cross(a));
+        assert_eq!(Tup::vector(-1.0, 2.0, -1.0), a.cross(&b));
+        assert_eq!(Tup::vector(1.0, -2.0, 1.0), b.cross(&a));
     }
 }
