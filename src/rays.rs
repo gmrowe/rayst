@@ -1,27 +1,27 @@
 use crate::Tup;
 
-struct Ray {
+pub struct Ray {
     origin: Tup, // point
     direction: Tup, // vector
 }
 
 impl Ray {
-    fn new(origin: Tup, direction: Tup) -> Self {
+    pub fn new(origin: Tup, direction: Tup) -> Self {
         Self {
             origin,
             direction,
         }
     }
 
-    fn origin(&self) -> Tup {
+    pub fn origin(&self) -> Tup {
         self.origin
     }
 
-    fn direction(&self) -> Tup {
+    pub fn direction(&self) -> Tup {
         self.direction
     }
 
-    fn position(&self, distance: f64) -> Tup {
+    pub fn position(&self, distance: f64) -> Tup {
         self.direction() * distance + self.origin()
     }
 }
