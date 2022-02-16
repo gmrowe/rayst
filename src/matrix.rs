@@ -4,7 +4,7 @@ use std::ops::{Index, IndexMut, Mul} ;
 
 #[derive(Debug, Clone)]
 pub struct Mat4 {
-   data: Vec<f64>,
+   data: [f64; Self::SIZE * Self::SIZE],
 }
 
 impl Mat4 {
@@ -13,12 +13,12 @@ impl Mat4 {
     pub fn from_data( data: &[f64]) -> Self {
         assert!(data.len() == Self::SIZE * Self::SIZE);
         Self {
-            data: data.iter().cloned().collect(),
+            data: data.try_into().expect("vec is wrong size"),
         }
     }
     
     pub fn new() -> Self {
-        Mat4::from_data(&vec![0.0; Self::SIZE * Self::SIZE])
+        Mat4::from_data(&[0.0; Self::SIZE * Self::SIZE])
     }
 
     pub fn identity_matrix() -> Self {
@@ -148,7 +148,7 @@ impl Mul<Tup> for Mat4 {
 
 #[derive(Debug, Clone)]
 struct Mat3 {
-    data: Vec<f64>,
+    data: [f64; Self::SIZE * Self::SIZE],
 }
 
 impl Mat3 {
@@ -157,12 +157,8 @@ impl Mat3 {
     fn from_data(data: &[f64]) -> Self {
         assert!(data.len() == Self::SIZE * Self::SIZE);
         Self {
-            data: data.iter().cloned().collect(),
+            data: data.try_into().expect("vec is wrong size"),
         }
-    }
-    
-    fn new(width: usize, height: usize) -> Self {
-        Self::from_data (&vec![0.0; width * height])
     }
 
     fn submatrix(&self, row_to_remove: usize, col_to_remove: usize) -> Mat2 {
@@ -216,7 +212,7 @@ impl PartialEq for Mat3 {
 
 #[derive(Debug, Clone)]
 struct Mat2 {
-    data: Vec<f64>,
+    data: [f64; Self::SIZE * Self::SIZE],
 }
 
 impl Mat2 {
@@ -225,7 +221,7 @@ impl Mat2 {
     fn from_data(data: &[f64]) -> Self {
         assert!(data.len() == Self::SIZE * Self::SIZE);
         Self {
-            data: data.iter().cloned().collect(),
+            data: data.try_into().expect("vec is wrong size"),
         }
     }
     
@@ -269,7 +265,7 @@ mod matrix_tests  {
 
     #[test]
     fn construct_and_inspect_a_4x4_matrix() {
-        let data = vec![
+        let data = [
             1.0,  2.0,  3.0,  4.0,
             5.5,  6.5,  7.5,  8.5,
             9.0,  10.0, 11.0, 12.0,
@@ -281,14 +277,14 @@ mod matrix_tests  {
 
     #[test]
     fn construct_and_inspect_a_2x2_matrix() {
-        let data = vec![-3.0, -5.0, 1.0, -2.0];
+        let data = [-3.0, -5.0, 1.0, -2.0];
         let m = Mat2::from_data(&data);
         assert!(nearly_eq(-2.0, m[(1, 1)]));
     }
 
     #[test]
     fn construct_and_inspect_a_3x3_matrix() {
-        let data = vec![
+        let data = [
             -3.0, -5.0, 0.0,
              1.0, -2.0, 7.0,
              0.0,  1.0, 1.0
@@ -299,13 +295,13 @@ mod matrix_tests  {
 
     #[test]
     fn identical_matrices_are_equal() {
-        let m1 = Mat4::from_data(&vec![
+        let m1 = Mat4::from_data(&[
             1.0, 2.0, 3.0, 4.0,
             5.0, 6.0, 7.0, 8.0,
             9.0, 8.0, 7.0, 6.0,
             5.0, 4.0, 3.0, 2.0
         ]); 
-        let m2 = Mat4::from_data(&vec![
+        let m2 = Mat4::from_data(&[
             1.0, 2.0, 3.0, 4.0,
             5.0, 6.0, 7.0, 8.0,
             9.0, 8.0, 7.0, 6.0,
@@ -316,13 +312,13 @@ mod matrix_tests  {
 
     #[test]
     fn different_matrices_are_not_equal() {
-        let m1 = Mat4::from_data(&vec![
+        let m1 = Mat4::from_data(&[
             1.0, 2.0, 3.0, 4.0,
             5.0, 6.0, 7.0, 8.0,
             9.0, 8.0, 7.0, 6.0,
             5.0, 4.0, 3.0, 2.0
         ]); 
-        let m2 = Mat4::from_data(&vec![
+        let m2 = Mat4::from_data(&[
             2.0, 3.0, 4.0, 5.0,
             6.0, 7.0, 8.0, 9.0,
             8.0, 7.0, 6.0, 5.0,
@@ -333,20 +329,20 @@ mod matrix_tests  {
 
     #[test]
     fn matrices_can_be_multiplied_by_other_matrices() {
-        let m1 = Mat4::from_data(&vec![
+        let m1 = Mat4::from_data(&[
             1.0, 2.0, 3.0, 4.0,
             5.0, 6.0, 7.0, 8.0,
             9.0, 8.0, 7.0, 6.0,
             5.0, 4.0, 3.0, 2.0
         ]); 
-        let m2 = Mat4::from_data(&vec![
+        let m2 = Mat4::from_data(&[
             -2.0, 1.0, 2.0, 3.0,
             3.0, 2.0, 1.0, -1.0,
             4.0, 3.0, 6.0, 5.0,
             1.0, 2.0, 7.0, 8.0
         ]);
 
-        let expected = Mat4::from_data(&vec![
+        let expected = Mat4::from_data(&[
             20.0, 22.0, 50.0,  48.0,
             44.0, 54.0, 114.0, 108.0,
             40.0, 58.0, 110.0, 102.0,
@@ -357,7 +353,7 @@ mod matrix_tests  {
 
     #[test]
     fn matrices_can_be_multiplied_by_tuples() {
-        let m =  Mat4::from_data(&vec![
+        let m =  Mat4::from_data(&[
             1.0, 2.0, 3.0, 4.0,
             2.0, 4.0, 4.0, 2.0,
             8.0, 6.0, 4.0, 1.0,
@@ -370,7 +366,7 @@ mod matrix_tests  {
 
     #[test]
     fn multiplying_a_matrix_by_identity_matrix_yields_original() {
-        let m =  Mat4::from_data(&vec![
+        let m =  Mat4::from_data(&[
             0.0, 1.0, 2.0, 4.0,
             1.0, 2.0, 4.0, 8.0,
             2.0, 4.0, 8.0, 16.0,
@@ -382,13 +378,13 @@ mod matrix_tests  {
 
     #[test]
     fn a_matrix_can_be_transposed() {
-        let m = Mat4::from_data(&vec![
+        let m = Mat4::from_data(&[
             0.0, 9.0, 3.0, 0.0,
             9.0, 8.0, 0.0, 8.8,
             1.0, 8.0, 5.0, 3.0,
             0.0, 0.0, 5.0, 8.0
         ]);
-        let t = Mat4::from_data(&vec![
+        let t = Mat4::from_data(&[
             0.0, 9.0, 1.0, 0.0,
             9.0, 8.0, 8.0, 0.0,
             3.0, 0.0, 5.0, 5.0,
@@ -404,7 +400,7 @@ mod matrix_tests  {
 
     #[test]
     fn the_determinant_of_a_2x2_matrix_can_be_calculated() {
-        let m = Mat2::from_data(&vec![
+        let m = Mat2::from_data(&[
              1.0, 5.0, 
             -3.0, 2.0,
         ]);
@@ -413,7 +409,7 @@ mod matrix_tests  {
 
     #[test]
     fn the_submatrix_of_a_mat4_is_a_mat3() {
-        let m = Mat4::from_data(&vec![
+        let m = Mat4::from_data(&[
             -6.0, 1.0, 1.0, 6.0,
             -8.0, 5.0, 8.0, 6.0,
             -1.0, 0.0, 8.0, 2.0,
@@ -421,7 +417,7 @@ mod matrix_tests  {
         ]);
         let row_to_remove = 2;
         let col_to_remove = 1;
-        let expected = Mat3::from_data(&vec![
+        let expected = Mat3::from_data(&[
             -6.0, 1.0, 6.0,
             -8.0, 8.0, 6.0,
             -7.0, -1.0, 1.0
@@ -431,14 +427,14 @@ mod matrix_tests  {
 
     #[test]
     fn the_submatrix_of_a_mat3_is_a_mat2() {
-        let m = Mat3::from_data(&vec![
+        let m = Mat3::from_data(&[
              1.0, 5.0, 0.0,
             -3.0, 2.0, 7.0,
              0.0, 6.0, -3.0
         ]);
         let row_to_remove = 0;
         let col_to_remove = 2;
-        let expected = Mat2::from_data(&vec![
+        let expected = Mat2::from_data(&[
             -3.0, 2.0,
              0.0, 6.0
         ]);
@@ -447,7 +443,7 @@ mod matrix_tests  {
 
     #[test]
     fn the_minor_of_an_element_of_a_mat3_can_be_calculated() {
-        let m = Mat3::from_data(&vec![
+        let m = Mat3::from_data(&[
              3.0,  5.0, 0.0,
              2.0, -1.0, -7.0,
              6.0, -1.0, 5.0
@@ -459,7 +455,7 @@ mod matrix_tests  {
 
     #[test]
     fn the_cofactor_of_element_0_0_of_a_mat3_does_not_change_signs() {
-        let m = Mat3::from_data(&vec![
+        let m = Mat3::from_data(&[
              3.0,  5.0, 0.0,
              2.0, -1.0, -7.0,
              6.0, -1.0, 5.0
@@ -471,7 +467,7 @@ mod matrix_tests  {
 
     #[test]
     fn the_cofactor_of_element_1_0_of_a_mat3_does_change_signs() {
-        let m = Mat3::from_data(&vec![
+        let m = Mat3::from_data(&[
              3.0,  5.0, 0.0,
              2.0, -1.0, -7.0,
              6.0, -1.0, 5.0
@@ -483,7 +479,7 @@ mod matrix_tests  {
 
     #[test]
     fn the_determinant_of_a_mat3_can_be_calculated() {
-        let m = Mat3::from_data(&vec![
+        let m = Mat3::from_data(&[
             1.0, 2.0, 6.0,
             -5.0, 8.0, -4.0,
             2.0, 6.0, 4.0
@@ -496,7 +492,7 @@ mod matrix_tests  {
 
     #[test]
     fn the_determinant_of_a_mat4_can_be_calculated() {
-        let m = Mat4::from_data(&vec![
+        let m = Mat4::from_data(&[
             -2.0, -8.0, 3.0, 5.0,
             -3.0, 1.0, 7.0, 3.0,
             1.0, 2.0, -9.0, 6.0,
@@ -511,7 +507,7 @@ mod matrix_tests  {
 
     #[test]
     fn a_matrix_with_a_nonzero_determinant_is_invertable() {
-        let m = Mat4::from_data(&vec![
+        let m = Mat4::from_data(&[
             6.0, 4.0, 4.0, 4.0,
             5.0, 5.0, 7.0, 6.0,
             4.0, -9.0, 3.0, -7.0,
@@ -523,7 +519,7 @@ mod matrix_tests  {
 
     #[test]
     fn a_matrix_with_a_zero_determinant_is_not_invertable() {
-        let m = Mat4::from_data(&vec![
+        let m = Mat4::from_data(&[
             -4.0, 2.0, -2.0, -3.0,
             9.0, 6.0, 2.0, 6.0,
             0.0, -5.0, 1.0, -5.0,
@@ -535,13 +531,13 @@ mod matrix_tests  {
 
     #[test]
     fn the_inverse_of_an_invertable_matrix_can_be_calculated() {
-        let m = Mat4::from_data(&vec![
+        let m = Mat4::from_data(&[
             -5.0, 2.0, 6.0, -8.0,
             1.0, -5.0, 1.0, 8.0,
             7.0, 7.0, -6.0, -7.0,
             1.0, -3.0, 7.0, 4.0
         ]);
-        let expected = Mat4::from_data(&vec![
+        let expected = Mat4::from_data(&[
             0.21805, 0.45113, 0.24060, -0.04511,
             -0.80827, -1.45677, -0.44361, 0.52068,
             -0.07895, -0.22368, -0.05263, 0.19737,
@@ -552,13 +548,13 @@ mod matrix_tests  {
 
     #[test]
     fn the_inverse_of_a_second_matrix_can_be_calculated() {
-        let m = Mat4::from_data(&vec![
+        let m = Mat4::from_data(&[
             8.0, -5.0, 9.0, 2.0,
             7.0, 5.0, 6.0, 1.0,
             -6.0, 0.0, 9.0, 6.0,
             -3.0, 0.0, -9.0, -4.0
         ]);
-        let expected = Mat4::from_data(&vec![
+        let expected = Mat4::from_data(&[
             -0.15385, -0.15385, -0.28205, -0.53846,
             -0.07692, 0.12308, 0.02564, 0.03077,
             0.35897,  0.35897, 0.43590, 0.92308,
@@ -569,13 +565,13 @@ mod matrix_tests  {
 
     #[test]
     fn the_inverse_of_a_third_matrix_can_be_calculated() {
-        let m = Mat4::from_data(&vec![
+        let m = Mat4::from_data(&[
             9.0, 3.0, 0.0, 9.0,
             -5.0, -2.0, -6.0, -3.0,
             -4.0, 9.0, 6.0, 4.0,
             -7.0, 6.0, 6.0, 2.0
         ]);
-        let expected = Mat4::from_data(&vec![
+        let expected = Mat4::from_data(&[
             -0.04074, -0.07778, 0.14444, -0.22222,
             -0.07778, 0.03333, 0.36667, -0.33333,
             -0.02901, -0.14630, -0.10926, 0.12963,
@@ -586,13 +582,13 @@ mod matrix_tests  {
 
     #[test]
     fn multiplying_a_product_by_its_inverse_yields_original_matrix() {
-        let m_a = Mat4::from_data(&vec![
+        let m_a = Mat4::from_data(&[
             3.0, -9.0, 7.0, 3.0,
             3.0, -8.0, 2.0, -9.0,
             -4.0, 4.0, 4.0, 1.0,
             -6.0, 5.0, -1.0, 1.0
         ]);
-        let m_b = Mat4::from_data(&vec![
+        let m_b = Mat4::from_data(&[
             8.0, 2.0, 2.0, 2.0,
             3.0, -1.0, 7.0, 0.0,
             7.0, 0.0, 5.0, 4.0,
