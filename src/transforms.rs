@@ -1,19 +1,19 @@
 use crate::matrix::Mat4;
 
-pub fn translation(dx: f64, dy: f64, dz: f64) -> Mat4 {
+pub fn translation<I: Into<f64>>(dx: I, dy: I, dz: I) -> Mat4 {
     let mut mat = Mat4::identity_matrix();
     const FINAL_COL: usize = Mat4::SIZE - 1;
-    mat[(0, FINAL_COL)] = dx;
-    mat[(1, FINAL_COL)] = dy;
-    mat[(2, FINAL_COL)] = dz;
+    mat[(0, FINAL_COL)] = dx.into();
+    mat[(1, FINAL_COL)] = dy.into();
+    mat[(2, FINAL_COL)] = dz.into();
     mat
 }
 
-pub fn scaling(dx: f64, dy: f64, dz: f64) -> Mat4 {
+pub fn scaling<I: Into<f64>>(dx: I, dy: I, dz: I) -> Mat4 {
     let mut mat = Mat4::identity_matrix();
-    mat[(0, 0)] = dx;
-    mat[(1, 1)] = dy;
-    mat[(2, 2)] = dz;
+    mat[(0, 0)] = dx.into();
+    mat[(1, 1)] = dy.into();
+    mat[(2, 2)] = dz.into();
     mat
 }
 
