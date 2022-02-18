@@ -1,5 +1,6 @@
 mod canvas;
 mod color;
+mod intersections;
 mod math_helpers;
 mod matrix;
 mod rays;
@@ -22,8 +23,6 @@ fn plot(point: &Tup, c: Canvas, color: &Color) -> Canvas {
         c
     }
 }
-
-//fn write_to_file()
 
 fn main() -> std::io::Result<()> {
     const WIDTH: usize = 500;

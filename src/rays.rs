@@ -1,5 +1,8 @@
-use crate::Tup;
+use crate::matrix::Mat4;
+use crate::tup::Tup;
+use crate::transforms;
 
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Ray {
     origin: Tup, // point
     direction: Tup, // vector
@@ -23,6 +26,10 @@ impl Ray {
 
     pub fn position(&self, distance: f64) -> Tup {
         self.direction() * distance + self.origin()
+    }
+
+    pub fn transform(&self, mat: &Mat4) -> Self {
+         Self::new(*mat * self.origin(), *mat * self.direction())
     }
 }
 
@@ -54,4 +61,36 @@ mod rays_test {
         assert_eq!(Tup::point(1.0, 3.0, 4.0), ray.position(-1.0));
         assert_eq!(Tup::point(4.5, 3.0, 4.0), ray.position(2.5));
     }
+
+    #[test]
+    fn when_a_ray_is_translated_its_origin_changes() {
+        let ray = Ray::new(Tup::point(1, 2, 3), Tup::vector(0, 1, 0));
+        let m = transforms::translation(3, 4, 5);
+        let r2 = ray.transform(&m);
+        assert_eq!(Tup::point(4, 6, 8), r2.origin());
+    }
+
+    #[test]
+    fn when_a_ray_is_translated_its_vector_is_unchanged() {
+        let ray = Ray::new(Tup::point(1, 2, 3), Tup::vector(0, 1, 0));
+        let m = transforms::translation(3, 4, 5);
+        let r2 = ray.transform(&m);
+        assert_eq!(Tup::vector(0, 1, 0), r2.direction());
+    }
+
+    #[test]
+    fn when_a_ray_is_scaled_its_origin_changes() {
+        let ray = Ray::new(Tup::point(1, 2, 3), Tup::vector(0, 1, 0));
+        let m = transforms::scaling(2, 3, 4);
+        let r2 = ray.transform(&m);
+        assert_eq!(Tup::point(2, 6, 12), r2.origin());
+    }
+
+    #[test]
+    fn when_a_ray_is_scaled_its_direction_changes() {
+        let ray = Ray::new(Tup::point(1, 2, 3), Tup::vector(0, 1, 0));
+        let m = transforms::scaling(2, 3, 4);
+        let r2 = ray.transform(&m);
+        assert_eq!(Tup::vector(0, 3, 0), r2.direction());
+    }  
 }
