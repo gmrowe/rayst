@@ -2,7 +2,7 @@ use crate::math_helpers::nearly_eq;
 use crate::tup::Tup;
 use std::ops::{Index, IndexMut, Mul} ;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Mat4 {
    data: [f64; Self::SIZE * Self::SIZE],
 }
