@@ -17,15 +17,26 @@ impl Tup {
         w: 0.0,
     };
 
-    pub fn new(x: f64, y: f64, z: f64, w: f64) -> Self {
-        Self { x, y, z, w }
+    pub fn new<T: Into<f64>>(x: T, y: T, z: T, w: T) -> Self {
+        Self {
+            x: x.into(),
+            y: y.into(),
+            z: z.into(),
+            w: w.into()
+        }
     }
 
-    pub fn point(x: f64, y: f64, z: f64) -> Self {
-        Self::new(x, y, z, 1.0)
+    pub fn point<I: Into<f64>>(ix: I, iy: I, iz: I) -> Self {
+        let x: f64 = ix.into();
+        let y: f64 = iy.into();
+        let z: f64 = iz.into();
+        Self::new(x, y, z, 1.0) 
     }
 
-    pub fn vector(x: f64, y: f64, z: f64) -> Self {
+    pub fn vector<I: Into<f64>>(ix: I, iy: I, iz: I) -> Self {
+        let x: f64 = ix.into();
+        let y: f64 = iy.into();
+        let z: f64 = iz.into();
         Self::new(x, y, z, 0.0)
     }
 
