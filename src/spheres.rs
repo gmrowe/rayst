@@ -20,7 +20,7 @@ fn get_id() -> usize {
 impl Sphere {
     pub fn intersect(&self, ray_object_space: &Ray) -> Vec<Intersection> {
         let center_of_sphere = Tup::point(0.0, 0.0, 0.0);
-        let ray_world_space = ray_object_space.transform(&self.transform());
+        let ray_world_space = ray_object_space.transform(&self.transform().inverse());
         let sphere_to_ray_vec = ray_world_space.origin() - center_of_sphere;
         let a = ray_world_space.direction().dot(&ray_world_space.direction());
         let b = 2.0 * ray_world_space.direction().dot(&sphere_to_ray_vec);
@@ -215,10 +215,8 @@ mod spheres_test {
     fn a_sphere_transforms_a_ray_before_calculating_intersects_when_translated() {
         let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
         let mut s = Sphere::default();
-        s = s.set_transform(transforms::scaling(2, 2, 2));
+        s = s.set_transform(transforms::translation(5, 0, 0));
         let xs = s.intersect(&r);
-        assert_eq!(2, xs.len());
-        assert_nearly_eq(3.0, xs[0].t());
-        assert_nearly_eq(7.0, xs[1].t());
+        assert_eq!(0, xs.len());
     }
 }
