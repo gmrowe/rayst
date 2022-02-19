@@ -1,5 +1,4 @@
 use crate::matrix::Mat4;
-use crate::transforms;
 use crate::tup::Tup;
 use crate::rays::Ray;
 use crate::intersections::Intersection;
@@ -60,6 +59,7 @@ impl Default for Sphere {
 mod spheres_test {
     use super::*;
     use crate::math_helpers;
+    use crate::transforms;
 
     fn assert_nearly_eq(a: f64, b: f64) {
         assert!(math_helpers::nearly_eq(a, b));
