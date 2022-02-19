@@ -10,9 +10,12 @@ mod tup;
 
 use canvas::Canvas;
 use color::Color;
-use std::fs;
+use std::fs::File;
+use std::io::{BufWriter, Write};
 use std::f64::consts;
 use tup::Tup;
+use spheres::Sphere;
+use rays::Ray;
 
 fn plot(point: &Tup, c: Canvas, color: &Color) -> Canvas {
     let x = point.x.round() as usize;
@@ -24,7 +27,7 @@ fn plot(point: &Tup, c: Canvas, color: &Color) -> Canvas {
     }
 }
 
-fn main() -> std::io::Result<()> {
+fn chapter_4_putting_it_together_clock() -> String {
     const WIDTH: usize = 500;
     const HEIGHT: usize = 500;
     let mut canvas = Canvas::new(WIDTH, HEIGHT);
@@ -42,9 +45,40 @@ fn main() -> std::io::Result<()> {
         let p = translate * twelve;
         canvas = plot(&p, canvas, &white);
     }
+    canvas.to_ppm()
+}
 
-    let image = canvas.to_ppm();
-    fs::write("clock.ppm", image)?;
+fn chapter_5_putting_it_together() -> String {
+    let camera = Tup::point(0, 0, -5);
+    let mut sphere = Sphere::default();
+    const CANVAS_WIDTH: usize = 200;
+    const CANVAS_HEIGHT: usize = 200;
+    const CANVAS_DISTANCE: f64 = 1.0;
+    let mut canvas = Canvas::new(CANVAS_WIDTH, CANVAS_HEIGHT);
+    let scale = transforms::scaling(30, 10, 1);
+    sphere = sphere.set_transform(scale);
+    let red = Color::new(1.0, 0.0, 0.0);
+    
+    for (row, col, pixel) in canvas.enumerate_pixels_mut() {
+        let x = col as f64 - (CANVAS_WIDTH / 2)  as f64;
+        let y = (CANVAS_HEIGHT / 2) as f64 - row as f64;
+        let z = CANVAS_DISTANCE;
+        let vec = (Tup::point(x, y, z) - camera).normalize();
+        let ray = Ray::new(camera, vec);
+        let xs = sphere.intersect(&ray);
+        if let Some(_) = xs.hit() {
+            *pixel = red;
+        }
+    }
+    canvas.to_ppm()
+}
+
+fn main() -> std::io::Result<()> {
+    let data = chapter_5_putting_it_together();
+    let f = File::create("shadow.ppm")?;
+    let mut f = BufWriter::new(f);
+    f.write_all(data.as_bytes())?;
+    // fs::write("shadow.ppm", chapter_5_putting_it_together())?;
     Ok(())
 }
 
