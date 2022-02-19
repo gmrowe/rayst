@@ -15,10 +15,6 @@ impl Intersection {
         }
     }
 
-    pub fn intersections(i1: Self, i2: Self) -> Vec<Self> {
-        vec![i1, i2]
-    }
-
     pub fn t(&self) -> f64 {
         self.t
     }
@@ -34,22 +30,22 @@ pub struct Intersections {
 }
 
 impl Intersections {
-    fn new(inters: &[Intersection]) -> Self {
+    pub fn new(inters: &[Intersection]) -> Self {
         Self {
             inters: inters.to_vec(),
         }
     }
     
-    fn push(mut self, i: Intersection) -> Intersections {
+    pub fn push(mut self, i: Intersection) -> Intersections {
         self.inters.push(i);
         self
     }
 
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.inters.len()
     }
 
-    fn hit(&self) -> Option<Intersection> {
+    pub fn hit(&self) -> Option<Intersection> {
         self.inters.iter()
             .filter(|inter| inter.t() > 0.0)
             .min_by(|i1, i2| {
