@@ -41,6 +41,11 @@ impl Canvas {
         self
     }
 
+    pub fn enumerate_pixels_mut(&mut self) -> EnumeratePixelsMut {
+        let width = self.width();
+        EnumeratePixelsMut::new(self.pixels.iter_mut(), width)
+    }
+
     pub fn pixel_at(&self, x: usize, y: usize) -> Color {
         self.pixels[self.index(x, y)]
     }
@@ -49,8 +54,7 @@ impl Canvas {
         if s.chars().count() < max_len {
             s.to_string()
         } else {
-            let break_index = s
-                .rmatch_indices(' ')
+            let break_index = s.rmatch_indices(' ')
                 .find(|(i, _)| *i < max_len)
                 .map(|(i, _)| i)
                 .unwrap_or(max_len - 1);
@@ -103,6 +107,39 @@ impl<'a> Iterator for PixelsMut<'a> {
     }
 }
 
+pub struct EnumeratePixelsMut<'a> {
+    cells: std::slice::IterMut<'a, Color>,
+    width: usize,
+    row: usize,
+    col: usize,
+}
+
+impl<'a> EnumeratePixelsMut<'a> {
+    fn new(cells: std::slice::IterMut<'a, Color>, width: usize) -> Self {
+        Self {
+            cells,
+            width,
+            row: 0,
+            col: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for EnumeratePixelsMut<'a> {
+    type Item = (usize, usize, &'a mut Color);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.col >= self.width {
+            self.col = 0;
+            self.row += 1;
+        }
+        let r = self.row;
+        let c = self.col;
+        self.col += 1;
+        self.cells.next().map(|cell| (r, c, cell))
+    }
+}
+
 #[cfg(test)]
 mod canvas_tests {
     use super::*;
@@ -141,6 +178,19 @@ mod canvas_tests {
         let first_3_lines: Vec<&str> = ppm.lines().take(3).collect();
         let expected = vec!["P3", "5 3", "255"];
         assert_eq!(expected, first_3_lines);
+    }
+
+    #[test]
+    fn a_canvas_can_enumerate_pixels() {
+        let red = Color::new(1.0, 0.0, 0.0);
+        let mut c = Canvas::new(5, 5);
+        for (row, col, pixel) in c.enumerate_pixels_mut() {
+            if row == col {
+                *pixel = red;
+            }
+        }
+        assert_eq!(red, c.pixel_at(1, 1));
+        assert_ne!(red, c.pixel_at(0, 1));
     }
 
     #[test]
