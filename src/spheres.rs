@@ -1,7 +1,7 @@
 use crate::matrix::Mat4;
 use crate::tup::Tup;
 use crate::rays::Ray;
-use crate::intersections::Intersection;
+use crate::intersections::{Intersection, Intersections};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 static ID_GEN: AtomicUsize = AtomicUsize::new(0);
@@ -17,7 +17,7 @@ fn get_id() -> usize {
 }
 
 impl Sphere {
-    pub fn intersect(&self, ray_object_space: &Ray) -> Vec<Intersection> {
+    pub fn intersect(&self, ray_object_space: &Ray) -> Intersections {
         let center_of_sphere = Tup::point(0.0, 0.0, 0.0);
         let ray_world_space = ray_object_space.transform(&self.transform().inverse());
         let sphere_to_ray_vec = ray_world_space.origin() - center_of_sphere;
@@ -26,19 +26,19 @@ impl Sphere {
         let c = sphere_to_ray_vec.dot(&sphere_to_ray_vec) - 1.0;
         let discriminant = (b * b) - (4.0 * a * c);
         if discriminant < 0.0 {
-            vec![]
+            Intersections::new(&vec![])
         } else {
             let t1 = Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), *self);
             let t2 = Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), *self);
-            Intersection::intersections(t1, t2)
+            Intersections::new(&vec![t1, t2])
         }
     }
 
-    fn transform(&self) -> Mat4 {
+    pub fn transform(&self) -> Mat4 {
         self.transform
     }
 
-    fn set_transform(self, transform: Mat4) -> Self {
+    pub fn set_transform(self, transform: Mat4) -> Self {
         Self {
             transform,
             ..self
