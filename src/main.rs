@@ -10,8 +10,7 @@ mod tup;
 
 use canvas::Canvas;
 use color::Color;
-use std::fs::File;
-use std::io::{BufWriter, Write};
+use std::fs;
 use std::f64::consts;
 use tup::Tup;
 use spheres::Sphere;
@@ -74,11 +73,7 @@ fn chapter_5_putting_it_together() -> String {
 }
 
 fn main() -> std::io::Result<()> {
-    let data = chapter_5_putting_it_together();
-    let f = File::create("shadow.ppm")?;
-    let mut f = BufWriter::new(f);
-    f.write_all(data.as_bytes())?;
-    // fs::write("shadow.ppm", chapter_5_putting_it_together())?;
+    fs::write("shadow.ppm", chapter_5_putting_it_together())?;
     Ok(())
 }
 
