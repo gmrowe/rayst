@@ -48,19 +48,24 @@ fn chapter_4_putting_it_together_clock() -> String {
 }
 
 fn chapter_5_putting_it_together() -> String {
-    let camera = Tup::point(0, 0, -5);
+    let camera = Tup::point(0, 0, -20);
     let mut sphere = Sphere::default();
+    const WALL_WIDTH: f64 = 20.0;
+    const WALL_HEIGHT: f64 = 20.0;
     const CANVAS_WIDTH: usize = 200;
     const CANVAS_HEIGHT: usize = 200;
     const CANVAS_DISTANCE: f64 = 1.0;
+    const PIXEL_WIDTH: f64 = WALL_WIDTH / CANVAS_WIDTH as f64;
+    const PIXEL_HEIGHT: f64 = WALL_HEIGHT / CANVAS_HEIGHT as f64;
     let mut canvas = Canvas::new(CANVAS_WIDTH, CANVAS_HEIGHT);
-    let scale = transforms::scaling(30, 10, 1);
-    sphere = sphere.set_transform(scale);
+    let scale = transforms::scaling(2, 2, 2);
+    let trans = transforms::translation(-2, 8, 0);
+    sphere = sphere.set_transform(trans * scale);
     let red = Color::new(1.0, 0.0, 0.0);
     
     for (row, col, pixel) in canvas.enumerate_pixels_mut() {
-        let x = col as f64 - (CANVAS_WIDTH / 2)  as f64;
-        let y = (CANVAS_HEIGHT / 2) as f64 - row as f64;
+        let x = (col as f64 * PIXEL_WIDTH) - (WALL_WIDTH / 2.0);
+        let y = (WALL_HEIGHT / 2.0) - (row as f64 * PIXEL_HEIGHT);
         let z = CANVAS_DISTANCE;
         let vec = (Tup::point(x, y, z) - camera).normalize();
         let ray = Ray::new(camera, vec);
