@@ -1,3 +1,4 @@
+use crate::materials::Material;
 use crate::matrix::Mat4;
 use crate::tup::Tup;
 use crate::rays::Ray;
@@ -10,6 +11,7 @@ static ID_GEN: AtomicUsize = AtomicUsize::new(0);
 pub struct Sphere {
     id: usize,
     transform: Mat4,
+    material: Material,
 }
 
 fn get_id() -> usize {
@@ -17,6 +19,20 @@ fn get_id() -> usize {
 }
 
 impl Sphere {
+    pub fn with_material(self, material: Material) -> Self {
+        Self {
+            material,
+            ..self
+        }
+    }
+
+    pub fn with_transform(self, transform: Mat4) -> Self {
+        Self {
+            transform,
+            ..self
+        }
+    }
+    
     pub fn intersect(&self, ray_object_space: &Ray) -> Intersections {
         let center_of_sphere = Tup::point(0.0, 0.0, 0.0);
         let ray_world_space = ray_object_space.transform(&self.transform().inverse());
@@ -56,6 +72,10 @@ impl Sphere {
             Tup::vector(world_normal.x, world_normal.y, world_normal.z);
         world_normal_vec.normalize()
     }
+
+    pub fn material(&self) -> Material {
+        self.material
+    }
 }
 
 impl Default for Sphere {
@@ -63,6 +83,7 @@ impl Default for Sphere {
         Self {
             id: get_id(),
             transform: Mat4::identity_matrix(),
+            material: Material::default(),
         }
     }
 }
@@ -271,20 +292,34 @@ mod spheres_test {
 
     #[test]
     fn the_normal_on_a_translated_sphere() {
-        let mut s = Sphere::default();
-        s = s.set_transform(transforms::translation(0, 1, 0));
+        let s = Sphere::default()
+            .with_transform(transforms::translation(0, 1, 0));
+
         let n = s.normal_at(Tup::point(0.0, 1.70711, -0.70711));
         assert_eq!(Tup::vector(0.0, 0.70711, -0.70711), n);
     }
 
     #[test]
     fn the_normal_on_a_transformed_sphere() {
-        let mut s = Sphere::default();
         let m =transforms::scaling(1.0, 0.5, 1.0)
             * transforms::rotation_z(std::f64::consts::PI / 5.0);
-        s = s.set_transform(m);
+        let s = Sphere::default().with_transform(m);
         let x = 2.0_f64.sqrt() / 2.0;
         let n = s.normal_at(Tup::point(0.0, x, -x));
         assert_eq!(Tup::vector(0.0, 0.97014, -0.24254), n);
+    }
+
+    #[test]
+    fn a_sphere_has_a_default_material() {
+        let s = Sphere::default();
+        let m = s.material();
+        assert_eq!(Material::default(), m);
+    }
+
+    #[test]
+    fn a_sphere_can_be_assigned_a_material() {
+        let m = Material::default().with_ambient(1.0);
+        let s = Sphere::default().with_material(m);
+        assert_eq!(m, s.material());
     }
 }

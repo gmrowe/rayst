@@ -1,5 +1,6 @@
 use crate::Color;
 
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Material {
     color: Color,
     ambient: f64,
@@ -9,6 +10,13 @@ pub struct Material {
 }
 
 impl Material {
+    pub fn with_ambient(self, ambient: f64) -> Self {
+        Self {
+            ambient,
+            ..self
+        }
+    }
+    
     pub fn ambient(&self) -> f64 {
         self.ambient
     }
