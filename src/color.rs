@@ -9,11 +9,11 @@ pub struct Color {
 }
 
 impl Color {
-    pub fn new(r: f64, g: f64, b: f64) -> Self {
+    pub fn new<I: Into<f64>>(r: I, g: I, b: I) -> Self {
         Self {
-            red: r,
-            green: g,
-            blue: b,
+            red: r.into(),
+            green: g.into(),
+            blue: b.into(),
         }
     }
 
