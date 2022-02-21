@@ -70,6 +70,10 @@ impl Tup {
             self.x * other.y - self.y * other.x,
         )
     }
+
+    pub fn reflect(&self, normal: &Self) -> Self {
+        *self - *normal * 2.0 * self.dot(normal)
+    }
 }
 
 impl PartialEq for Tup {
@@ -381,5 +385,22 @@ mod tup_tests {
         let b = Tup::vector(2.0, 3.0, 4.0);
         assert_eq!(Tup::vector(-1.0, 2.0, -1.0), a.cross(&b));
         assert_eq!(Tup::vector(1.0, -2.0, 1.0), b.cross(&a));
+    }
+
+    #[test]
+    fn reflecting_a_vector_approaching_at_45_degrees() {
+        let v = Tup::vector(1, -1, 0);
+        let normal = Tup::vector(0, 1, 0);
+        let r = v.reflect(&normal);
+        assert_eq!(Tup::vector(1, 1, 0), r);
+    }
+
+    #[test]
+    fn reflecting_a_vector_across_a_slanted_surface() {
+        let v = Tup::vector(0, -1, 0);
+        let x = 2.0_f64.sqrt() / 2.0; 
+        let normal = Tup::vector(x, x, 0.0); // 45 degree angle
+        let r = v.reflect(&normal);
+        assert_eq!(Tup::vector(1, 0, 0), r);
     }
 }
