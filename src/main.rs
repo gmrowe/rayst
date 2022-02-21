@@ -2,6 +2,7 @@ mod canvas;
 mod color;
 mod intersections;
 mod lights;
+mod materials;
 mod math_helpers;
 mod matrix;
 mod rays;
