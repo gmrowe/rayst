@@ -1,24 +1,25 @@
 use crate::Color;
 use crate::Tup;
 
-struct Light {
+#[derive(PartialEq, Copy, Clone, Debug)]
+pub struct Light {
     position: Tup,
     intensity: Color,    
 }
 
 impl Light {
-    fn point_light(position: Tup, intensity: Color) -> Self {
+    pub fn point_light(position: Tup, intensity: Color) -> Self {
         Self {
             position,
             intensity,
         }
     }
 
-    fn position(&self) -> Tup {
+    pub fn position(&self) -> Tup {
         self.position
     }
 
-    fn intensity(&self) -> Color {
+    pub fn intensity(&self) -> Color {
         self.intensity
     }
 }
