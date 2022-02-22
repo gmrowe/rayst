@@ -9,12 +9,26 @@ pub struct Color {
 }
 
 impl Color {
+    const MAX_SUBPIXEL_VALUE: f64 = 255.0;
+        
     pub fn new<I: Into<f64>>(r: I, g: I, b: I) -> Self {
         Self {
             red: r.into(),
             green: g.into(),
             blue: b.into(),
         }
+    }
+
+    pub fn from_hex(hex_color: u32) -> Self {
+        // Hex color format = 0xrrggbb
+        let r = (hex_color >> (8 * 2) & 0xFF) as f64;
+        let g = (hex_color >> (8 * 1) & 0xFF) as f64;
+        let b = (hex_color >> (8 * 0) & 0xFF) as f64;
+        Self::new(
+            r / Self::MAX_SUBPIXEL_VALUE,
+            g / Self::MAX_SUBPIXEL_VALUE,
+            b / Self::MAX_SUBPIXEL_VALUE,
+        )
     }
 
     pub fn red(&self) -> f64 {
@@ -30,14 +44,10 @@ impl Color {
     }
 
     pub fn to_byte_triple(self) -> (u8, u8, u8) {
-        const MAX_SUBPIXEL_VALUE: f64 = 255.0;
-        let normalize =
-            |subpixel: f64| (subpixel.clamp(0.0, 1.0) * MAX_SUBPIXEL_VALUE).round() as u8;
-        (
-            normalize(self.red()),
-            normalize(self.green()),
-            normalize(self.blue()),
-        )
+        let normalize = |subpixel: f64| {
+            (subpixel.clamp(0.0, 1.0) * Self::MAX_SUBPIXEL_VALUE).round() as u8
+        };
+        (normalize(self.red()), normalize(self.green()), normalize(self.blue()))
     }
 }
 
@@ -152,5 +162,40 @@ mod color_tests {
         let c2 = Color::new(0.9, 1.0, 0.1);
         let expected = Color::new(0.9, 0.2, 0.04);
         assert_eq!(expected, c1 * c2);
+    }
+
+    #[test]
+    fn black_color_can_be_created_from_hex_value() {
+        let color = Color::from_hex(0x000000);
+        let expected = Color::new(0, 0, 0);
+        assert_eq!(expected, color);
+    }
+
+    #[test]
+    fn red_color_can_be_created_from_hex_value() {
+        let color = Color::from_hex(0xFF0000);
+        let expected = Color::new(1, 0, 0);
+        assert_eq!(expected, color);
+    }
+
+    #[test]
+    fn green_color_can_be_created_from_hex_value() {
+        let color = Color::from_hex(0x00FF00);
+        let expected = Color::new(0, 1, 0);
+        assert_eq!(expected, color);
+    }
+
+    #[test]
+    fn blue_color_can_be_created_from_hex_value() {
+        let color = Color::from_hex(0x0000FF);
+        let expected = Color::new(0, 0, 1);
+        assert_eq!(expected, color);
+    }
+
+    #[test]
+    fn arbitrary_color_can_be_created_from_hex_value() {
+        let color = Color::from_hex(0xF2A112);
+        let expected = Color::new(242.0 / 255.0, 161.0 / 255.0, 18.0 / 255.0);
+        assert_eq!(expected, color);
     }
 }
