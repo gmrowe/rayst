@@ -1,6 +1,6 @@
 use crate::color::Color;
-use crate::tup::Tup;
 use crate::lights::Light;
+use crate::tup::Tup;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Material {
@@ -13,12 +13,25 @@ pub struct Material {
 
 impl Material {
     pub fn with_ambient(self, ambient: f64) -> Self {
-        Self {
-            ambient,
-            ..self
-        }
+        Self { ambient, ..self }
     }
-    
+
+    pub fn with_color(self, color: Color) -> Self {
+        Self { color, ..self }
+    }
+
+    pub fn with_diffuse(self, diffuse: f64) -> Self {
+        Self { diffuse, ..self }
+    }
+
+    pub fn with_specular(self, specular: f64) -> Self {
+        Self { specular, ..self }
+    }
+
+    pub fn with_shininess(self, shininess: f64) -> Self {
+        Self { shininess, ..self }
+    }
+
     pub fn ambient(&self) -> f64 {
         self.ambient
     }
@@ -39,14 +52,7 @@ impl Material {
         self.shininess
     }
 
-    pub fn lighting(
-        &self,
-        light: Light,
-        position: Tup,
-        eyev: Tup,
-        normalv: Tup
-    ) -> Color
-    {
+    pub fn lighting(&self, light: Light, position: Tup, eyev: Tup, normalv: Tup) -> Color {
         let black = Color::new(0, 0, 0);
         let effective_color = self.color() * light.intensity();
         let lightv = (light.position() - position).normalize();
@@ -85,7 +91,6 @@ impl Default for Material {
     }
 }
 
-
 mod materials_test {
     use super::*;
 
@@ -94,7 +99,7 @@ mod materials_test {
         let m = Material::default();
         assert_eq!(Color::new(1, 1, 1), m.color());
     }
-    
+
     #[test]
     fn default_material_has_ambient_reflection() {
         let m = Material::default();
@@ -138,7 +143,7 @@ mod materials_test {
     fn lighting_with_eye_between_light_and_surface_eye_offset_45_degrees() {
         let m = Material::default();
         let position = Tup::point(0, 0, 0);
-        let eyev = Tup::vector(0.0, 2.0_f64.sqrt()/2.0, -2.0_f64.sqrt()/2.0);
+        let eyev = Tup::vector(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 0, -10), Color::new(1, 1, 1));
         let result = m.lighting(light, position, eyev, normalv);
@@ -157,9 +162,8 @@ mod materials_test {
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 10, -10), Color::new(1, 1, 1));
         let result = m.lighting(light, position, eyev, normalv);
-        let sum_of_lights = m.ambient()
-            + (2.0_f64.sqrt()/2.0 * m.diffuse())
-            + (0.0 * m.specular());
+        let sum_of_lights =
+            m.ambient() + (2.0_f64.sqrt() / 2.0 * m.diffuse()) + (0.0 * m.specular());
         assert_eq!(
             Color::new(sum_of_lights, sum_of_lights, sum_of_lights),
             result
@@ -170,13 +174,11 @@ mod materials_test {
     fn lighting_with_eye_in_path_of_reflection() {
         let m = Material::default();
         let position = Tup::point(0, 0, 0);
-        let eyev = Tup::vector(0.0, -2.0_f64.sqrt()/2.0, -2.0_f64.sqrt()/2.0);
+        let eyev = Tup::vector(0.0, -2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 10, -10), Color::new(1, 1, 1));
         let result = m.lighting(light, position, eyev, normalv);
-        let sum_of_lights = m.ambient()
-            + (2.0_f64.sqrt()/2.0 * m.diffuse())
-            + m.specular();
+        let sum_of_lights = m.ambient() + (2.0_f64.sqrt() / 2.0 * m.diffuse()) + m.specular();
         assert_eq!(
             Color::new(sum_of_lights, sum_of_lights, sum_of_lights),
             result
@@ -191,9 +193,7 @@ mod materials_test {
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 0, 10), Color::new(1, 1, 1));
         let result = m.lighting(light, position, eyev, normalv);
-        let sum_of_lights = m.ambient()
-            + (0.0 * m.diffuse())
-            + (0.0 * m.specular());
+        let sum_of_lights = m.ambient() + (0.0 * m.diffuse()) + (0.0 * m.specular());
         assert_eq!(
             Color::new(sum_of_lights, sum_of_lights, sum_of_lights),
             result
