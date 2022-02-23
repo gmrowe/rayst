@@ -14,6 +14,8 @@ use canvas::Canvas;
 use color::Color;
 use std::fs;
 use std::f64::consts;
+use lights::Light;
+use materials::Material;
 use tup::Tup;
 use spheres::Sphere;
 use rays::Ray;
@@ -79,8 +81,47 @@ fn chapter_5_putting_it_together() -> String {
     canvas.to_ppm()
 }
 
+fn chapter_6_putting_it_together() -> String {
+    let sphere_material = Material::default()
+        .with_color(Color::from_hex(0xCC5500))
+        .with_ambient(0.06);
+    let sphere = Sphere::default()
+        .with_material(sphere_material)
+        .with_transform(transforms::scaling(2.4, 1.2, 1.0));
+    let camera = Tup::point(0, 0, -2);
+    let light_pos = Tup::point(-10, 10, -10);
+    let light_color = Color::new(1, 1, 1);
+    let light = Light::point_light(light_pos, light_color);
+    const WALL_WIDTH: f64 = 10.0;
+    const WALL_HEIGHT: f64 = 10.0;
+    const CANVAS_WIDTH: usize = 800;
+    const CANVAS_HEIGHT: usize = 800;
+    const CANVAS_DISTANCE: f64 = 1.0;
+    const PIXEL_WIDTH: f64 = WALL_WIDTH / CANVAS_WIDTH as f64;
+    const PIXEL_HEIGHT: f64 = WALL_HEIGHT / CANVAS_HEIGHT as f64;
+    let mut canvas = Canvas::new(CANVAS_WIDTH, CANVAS_HEIGHT);
+       
+    for (row, col, pixel) in canvas.enumerate_pixels_mut() {
+        let x = (col as f64 * PIXEL_WIDTH) - (WALL_WIDTH / 2.0);
+        let y = (WALL_HEIGHT / 2.0) - (row as f64 * PIXEL_HEIGHT);
+        let z = CANVAS_DISTANCE;
+        let vec = (Tup::point(x, y, z) - camera).normalize();
+        let ray = Ray::new(camera, vec);
+        let xs = sphere.intersect(&ray);
+        if let Some(intersection) = xs.hit() {
+            let hit_object = intersection.object();
+            let point = ray.position(intersection.t());
+            let normal = hit_object.normal_at(point);
+            let eyev = -ray.direction();
+            let color = hit_object.material().lighting(light, point, eyev, normal);
+            *pixel = color;
+        }
+    }
+    canvas.to_ppm()
+}
+
 fn main() -> std::io::Result<()> {
-    fs::write("shadow.ppm", chapter_5_putting_it_together())?;
+    fs::write("sphere.ppm", chapter_6_putting_it_together())?;
     Ok(())
 }
 
