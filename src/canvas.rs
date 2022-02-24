@@ -81,6 +81,18 @@ impl Canvas {
         let body = ppm_lines.join("\n");
         format!("{}\n{}\n", header, body)
     }
+
+    pub fn to_p6_ppm(&self) -> Vec<u8> {
+        let header = format!("P6\n{} {}\n255\n", self.width(), self.height());
+        let mut result = header.into_bytes();
+        for pixel in self.pixels() {
+            let (r, g, b) = pixel.to_byte_triple();
+            result.push(r);
+            result.push(g);
+            result.push(b);
+        }
+        result
+    }
 }
 
 pub struct Pixels<'a> {
