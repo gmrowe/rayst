@@ -81,21 +81,21 @@ fn chapter_5_putting_it_together() -> String {
     canvas.to_ppm()
 }
 
-fn chapter_6_putting_it_together() -> String {
+fn chapter_6_putting_it_together() -> Vec<u8> {
     let sphere_material = Material::default()
-        .with_color(Color::from_hex(0xCC5500))
-        .with_ambient(0.06);
+        .with_color(Color::from_hex(0x324AB2))
+        .with_ambient(0.10);
     let sphere = Sphere::default()
         .with_material(sphere_material)
-        .with_transform(transforms::scaling(2.4, 1.2, 1.0));
+        .with_transform(transforms::scaling(2, 2, 1));
     let camera = Tup::point(0, 0, -2);
     let light_pos = Tup::point(-10, 10, -10);
     let light_color = Color::new(1, 1, 1);
     let light = Light::point_light(light_pos, light_color);
     const WALL_WIDTH: f64 = 10.0;
     const WALL_HEIGHT: f64 = 10.0;
-    const CANVAS_WIDTH: usize = 800;
-    const CANVAS_HEIGHT: usize = 800;
+    const CANVAS_WIDTH: usize = 600;
+    const CANVAS_HEIGHT: usize = 600;
     const CANVAS_DISTANCE: f64 = 1.0;
     const PIXEL_WIDTH: f64 = WALL_WIDTH / CANVAS_WIDTH as f64;
     const PIXEL_HEIGHT: f64 = WALL_HEIGHT / CANVAS_HEIGHT as f64;
@@ -117,11 +117,14 @@ fn chapter_6_putting_it_together() -> String {
             *pixel = color;
         }
     }
-    canvas.to_ppm()
+    canvas.to_p6_ppm()
 }
 
 fn main() -> std::io::Result<()> {
-    fs::write("sphere.ppm", chapter_6_putting_it_together())?;
+    println!("Computing pixels");
+    let pixels = chapter_6_putting_it_together();
+    println!("Writing file");
+    fs::write("sphere_bin.ppm", pixels)?;
     Ok(())
 }
 
