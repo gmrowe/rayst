@@ -87,8 +87,9 @@ fn chapter_6_putting_it_together() -> Vec<u8> {
         .with_ambient(0.10);
     let sphere = Sphere::default()
         .with_material(sphere_material)
-        .with_transform(transforms::scaling(2, 2, 1));
-    let camera = Tup::point(0, 0, -2);
+        .with_transform(transforms::scaling(2, 2, 1))
+        ;
+    let camera = Tup::point(0, 0, -5);
     let light_pos = Tup::point(-10, 10, -10);
     let light_color = Color::new(1, 1, 1);
     let light = Light::point_light(light_pos, light_color);
@@ -100,6 +101,7 @@ fn chapter_6_putting_it_together() -> Vec<u8> {
     const PIXEL_WIDTH: f64 = WALL_WIDTH / CANVAS_WIDTH as f64;
     const PIXEL_HEIGHT: f64 = WALL_HEIGHT / CANVAS_HEIGHT as f64;
     let mut canvas = Canvas::new(CANVAS_WIDTH, CANVAS_HEIGHT);
+    const PIXEL_COUNT: usize = CANVAS_WIDTH * CANVAS_HEIGHT;
        
     for (row, col, pixel) in canvas.enumerate_pixels_mut() {
         let x = (col as f64 * PIXEL_WIDTH) - (WALL_WIDTH / 2.0);
@@ -116,7 +118,10 @@ fn chapter_6_putting_it_together() -> Vec<u8> {
             let color = hit_object.material().lighting(light, point, eyev, normal);
             *pixel = color;
         }
+        let percent_complete = (row * CANVAS_WIDTH + col) as f64 / PIXEL_COUNT  as f64 * 100.0;
+        print!("{:.0}% complete\r", percent_complete);
     }
+    print!("\n");
     canvas.to_p6_ppm()
 }
 
