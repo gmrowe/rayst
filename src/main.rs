@@ -9,6 +9,7 @@ mod rays;
 mod spheres;
 mod transforms;
 mod tup;
+mod world;
 
 use canvas::Canvas;
 use color::Color;
