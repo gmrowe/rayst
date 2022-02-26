@@ -1,11 +1,9 @@
 use crate::color::Color;
 use crate::lights::Light;
-use crate::materials::Material;
 use crate::rays::Ray;
 use crate::spheres::Sphere;
 use crate::tup::Tup;
-use crate::intersections::{Intersection, Intersections, Computations};
-use crate::transforms;
+use crate::intersections::{Intersections, Computations};
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct World {
@@ -44,16 +42,15 @@ impl World {
     }
 
     fn shade_hit(&self, comps: Computations) -> Color {
-        let material = comps.object().material();
-        material.lighting(self.light, comps.point(), comps.eyev(), comps.normalv())
+        comps.object()
+            .material()
+            .lighting(self.light, comps.point(), comps.eyev(), comps.normalv())
     }
 
     fn color_at(&self, ray: Ray) -> Color {
-        let intersections = self.intersect(ray);
-        match intersections.hit() {
-            None => Color::new(0, 0, 0),
-            Some(i) => self.shade_hit(i.prepare_computations(ray))
-        }
+        self.intersect(ray).hit()
+            .map(|i| self.shade_hit(i.prepare_computations(ray)))
+            .unwrap_or(Color::new(0, 0, 0))
     }
 }
 
@@ -70,6 +67,9 @@ impl Default for World {
 #[cfg(test)]
 mod world_test {
     use super::*;
+    use crate::materials::Material;
+    use crate::intersections::Intersection;
+    use crate::transforms;
     use crate::math_helpers::nearly_eq;
 
     fn default_test_world() -> World {
