@@ -91,6 +91,7 @@ impl Default for Material {
     }
 }
 
+#[cfg(test)]
 mod materials_test {
     use super::*;
 
