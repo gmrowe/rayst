@@ -190,7 +190,7 @@ mod materials_test {
 
     #[test]
     fn lighting_with_eye_in_path_of_reflection() {
-        let m = Material::default();
+       let m = Material::default();
         let position = Tup::point(0, 0, 0);
         let eyev = Tup::vector(0.0, -2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = Tup::vector(0, 0, -1);
