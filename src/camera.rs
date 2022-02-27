@@ -10,6 +10,7 @@ pub struct Camera {
     vsize: usize,
     field_of_view: f64,
     transform: Mat4,
+    log_progress: bool,
 }
 
 impl Camera {
@@ -19,12 +20,20 @@ impl Camera {
             vsize,
             field_of_view,
             transform: Mat4::identity_matrix(),
+            log_progress: false,
         }
     }
 
     pub fn with_transform(self, transform: Mat4) -> Self {
         Self {
             transform,
+            ..self
+        }
+    }
+
+    pub fn with_progress_logging(self) -> Self {
+        Self {
+            log_progress: true,
             ..self
         }
     }
@@ -74,12 +83,23 @@ impl Camera {
         Ray::new(origin, direction)
     }
 
+    fn output_progress(&self, row: usize, col: usize) {
+        let pixel_count = (self.hsize * self.vsize) as f64;
+        let pixel_number = (row * self.hsize + col) as f64;
+        let percent_complete = pixel_number / pixel_count * 100.0;
+        print!("{:.0}% complete\r", percent_complete); 
+    }
+
     pub fn render(&self, world: &World) -> Canvas {
         let mut image = Canvas::new(self.hsize, self.vsize);
         for (row, col, pixel) in image.enumerate_pixels_mut() {
             let ray = self.ray_for_pixel(col, row);
             let color = world.color_at(ray);
             *pixel = color;
+            
+            if self.log_progress {
+                self.output_progress(row, col);
+            }
         }
         image
     }
