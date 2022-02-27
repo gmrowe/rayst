@@ -1,4 +1,5 @@
 use crate::matrix::Mat4;
+use crate::tup::Tup;
 
 pub fn translation<I: Into<f64>>(dx: I, dy: I, dz: I) -> Mat4 {
     let mut mat = Mat4::identity_matrix();
@@ -66,6 +67,19 @@ pub fn shearing(dx_y: f64, dx_z: f64, dy_x: f64, dy_z: f64, dz_x: f64, dz_y: f64
     mat[(2, 0)] = dz_x;
     mat[(2, 1)] = dz_y;
     mat
+}
+
+pub fn view_transform(from: Tup, to: Tup, up: Tup) -> Mat4 {
+    let forwardv = (to - from).normalize();
+    let leftv = forwardv.cross(&up.normalize());
+    let upv = leftv.cross(&forwardv);
+    let orientation = Mat4::from_data(&vec![
+        leftv.x,     leftv.y,     leftv.z,     0.0,
+        upv.x,       upv.y,       upv.z,       0.0,
+        -forwardv.x, -forwardv.y, -forwardv.z, 0.0,
+        0.0,         0.0,         0.0,         1.0
+    ]);
+    orientation * translation(-from.x, -from.y, -from.z)
 }
 
 #[cfg(test)]
@@ -286,5 +300,47 @@ mod tramsforms_test {
 
         let transform = trans * scale * rot;
         assert_eq!(Tup::point(15.0, 0.0, 7.0), transform * p);
+    }
+
+    #[test]
+    fn default_view_transform_orientation_returns_identity_matrix() {
+        let from = Tup::point(0, 0, 0);
+        let to = Tup::point(0, 0, -1);
+        let up = Tup::vector(0, 1, 0);
+        let t = view_transform(from, to, up);
+        assert_eq!(Mat4::identity_matrix(), t);
+    }
+
+    #[test]
+    fn view_transform_looking_in_positive_z_direction() {
+        let from = Tup::point(0, 0, 0);
+        let to = Tup::point(0, 0, 1);
+        let up = Tup::vector(0, 1, 0);
+        let t = view_transform(from, to, up);
+        assert_eq!(reflect_z() * reflect_x(), t);
+    }
+
+    #[test]
+    fn view_transform_moves_the_world() {
+        let from = Tup::point(0, 0, 8);
+        let to = Tup::point(0, 0, 0);
+        let up = Tup::vector(0, 1, 0);
+        let t = view_transform(from, to, up);
+        assert_eq!(translation(0, 0, -8), t);
+    }
+
+    #[test]
+    fn view_transform_can_accur_in_arbitrary_directions() {
+        let from = Tup::point(1, 3, 2);
+        let to = Tup::point(4, -2, 8);
+        let up = Tup::vector(1, 1, 0);
+        let t = view_transform(from, to, up);
+        let expected = Mat4::from_data(&vec![
+            -0.50709, 0.50709, 0.67612, -2.36643,
+            0.76772, 0.60609, 0.12122, -2.82843,
+            -0.35857, 0.59761, -0.71714, 0.00000,
+            0.00000, 0.00000, 0.00000, 1.00000
+        ]);
+        assert_eq!(expected, t);
     }
 }
