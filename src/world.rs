@@ -44,7 +44,7 @@ impl World {
     pub fn shade_hit(&self, comps: Computations) -> Color {
         comps.object()
             .material()
-            .lighting(self.light, comps.point(), comps.eyev(), comps.normalv())
+            .lighting(self.light, comps.point(), comps.eyev(), comps.normalv(), false)
     }
 
     pub fn color_at(&self, ray: Ray) -> Color {
