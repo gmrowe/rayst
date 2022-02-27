@@ -11,7 +11,7 @@ A Test-Driven Guide to Your First 3D Renderer][1] by Jamis Buck.
 
 ### Dependencies
 
-* No dependencies yet. Will likely need to choose a graphics library for rendering.
+* No external dependancies required
 
 ### Installing
 
@@ -20,16 +20,16 @@ If you have a rust compiler and Cargo installed:
 * clone the repository
 * cd into the newly created directory and execute:
 ```
-cargo build
+cargo build --release
 ```
 
 ### Executing program
 
 * after building, execute
 ```
-cargo run
+./target/release/rayst
 ```
-* currently this is the default "Hello World" implementation
-* it should get more interesting as the project progresses
+Program should output `scene.ppm` which can be opened in many image viewer progams including
+Preview on macOS and gthumb on Linux. 
 
 [1]: http://raytracerchallenge.com/
