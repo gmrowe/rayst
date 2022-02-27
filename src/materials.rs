@@ -1,6 +1,7 @@
 use crate::color::Color;
 use crate::lights::Light;
 use crate::tup::Tup;
+use crate::color::consts;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Material {
@@ -52,28 +53,44 @@ impl Material {
         self.shininess
     }
 
-    pub fn lighting(&self, light: Light, position: Tup, eyev: Tup, normalv: Tup) -> Color {
-        let black = Color::new(0, 0, 0);
+    fn calc_diffuse(&self, effective_color: Color, light_dot_normal: f64) -> Color {
+        effective_color * self.diffuse() * light_dot_normal
+    }
+
+    fn calc_specular(&self, lightv: Tup, normalv: Tup, eyev: Tup, light: Light) -> Color {
+        let reflectv = -lightv.reflect(&normalv);
+        let reflect_dot_eye = reflectv.dot(&eyev);
+        if reflect_dot_eye <= 0.0 {
+           consts::BLACK 
+        } else {
+            let factor = reflect_dot_eye.powf(self.shininess());
+            light.intensity() * self.specular() * factor
+        }
+    }
+
+    fn black() -> Color {
+        Color::new(0, 0, 0)
+    }
+
+    pub fn lighting(
+        &self,
+        light: Light,
+        position: Tup,
+        eyev: Tup,
+        normalv: Tup,
+        in_shadow: bool,
+    ) -> Color {
         let effective_color = self.color() * light.intensity();
         let lightv = (light.position() - position).normalize();
         let ambient = effective_color * self.ambient();
         let light_dot_normal = lightv.dot(&normalv);
-        let diffuse = if light_dot_normal < 0.0 {
-            black
+        let (diffuse, specular) = if light_dot_normal < 0.0 || in_shadow {
+            (consts::BLACK, consts::BLACK)
         } else {
-            effective_color * self.diffuse() * light_dot_normal
-        };
-        let specular = if light_dot_normal < 0.0 {
-            black
-        } else {
-            let reflectv = -lightv.reflect(&normalv);
-            let reflect_dot_eye = reflectv.dot(&eyev);
-            if reflect_dot_eye <= 0.0 {
-                black
-            } else {
-                let factor = reflect_dot_eye.powf(self.shininess());
-                light.intensity() * self.specular() * factor
-            }
+            (
+                self.calc_diffuse(effective_color, light_dot_normal),
+                self.calc_specular(lightv, normalv, eyev, light),
+            )
         };
         ambient + diffuse + specular
     }
@@ -132,7 +149,7 @@ mod materials_test {
         let eyev = Tup::vector(0, 0, -1);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 0, -10), Color::new(1, 1, 1));
-        let result = m.lighting(light, position, eyev, normalv);
+        let result = m.lighting(light, position, eyev, normalv, false);
         let sum_of_lights = m.ambient() + m.diffuse() + m.specular();
         assert_eq!(
             Color::new(sum_of_lights, sum_of_lights, sum_of_lights),
@@ -147,7 +164,7 @@ mod materials_test {
         let eyev = Tup::vector(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 0, -10), Color::new(1, 1, 1));
-        let result = m.lighting(light, position, eyev, normalv);
+        let result = m.lighting(light, position, eyev, normalv, false);
         let sum_of_lights = m.ambient() + m.diffuse() + (0.0 * m.specular());
         assert_eq!(
             Color::new(sum_of_lights, sum_of_lights, sum_of_lights),
@@ -162,7 +179,7 @@ mod materials_test {
         let eyev = Tup::vector(0, 0, -1);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 10, -10), Color::new(1, 1, 1));
-        let result = m.lighting(light, position, eyev, normalv);
+        let result = m.lighting(light, position, eyev, normalv, false);
         let sum_of_lights =
             m.ambient() + (2.0_f64.sqrt() / 2.0 * m.diffuse()) + (0.0 * m.specular());
         assert_eq!(
@@ -178,7 +195,7 @@ mod materials_test {
         let eyev = Tup::vector(0.0, -2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 10, -10), Color::new(1, 1, 1));
-        let result = m.lighting(light, position, eyev, normalv);
+        let result = m.lighting(light, position, eyev, normalv, false);
         let sum_of_lights = m.ambient() + (2.0_f64.sqrt() / 2.0 * m.diffuse()) + m.specular();
         assert_eq!(
             Color::new(sum_of_lights, sum_of_lights, sum_of_lights),
@@ -193,11 +210,23 @@ mod materials_test {
         let eyev = Tup::vector(0, 0, 1);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 0, 10), Color::new(1, 1, 1));
-        let result = m.lighting(light, position, eyev, normalv);
+        let result = m.lighting(light, position, eyev, normalv, false);
         let sum_of_lights = m.ambient() + (0.0 * m.diffuse()) + (0.0 * m.specular());
         assert_eq!(
             Color::new(sum_of_lights, sum_of_lights, sum_of_lights),
             result
         );
+    }
+
+    #[test]
+    fn lighting_with_surface_in_shadow() {
+        let m = Material::default();
+        let position = Tup::point(0, 0, 0);
+        let eyev = Tup::vector(0, 0, -1);
+        let normalv = Tup::vector(0, 0, -1);
+        let light = Light::point_light(Tup::point(0, 0, -10), Color::new(1, 1, 1));
+        let in_shadow = true;
+        let result = m.lighting(light, position, eyev, normalv, in_shadow);
+        assert_eq!(Color::new(m.ambient(), m.ambient(), m.ambient()), result);
     }
 }
