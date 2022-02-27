@@ -12,27 +12,27 @@ pub struct World {
 }
 
 impl World {
-    fn with_light(self, light: Light) -> Self {
+    pub fn with_light(self, light: Light) -> Self {
         Self {
             light,
             ..self
         }
     }
 
-    fn with_object(mut self, sphere: Sphere) -> Self {
+    pub fn with_object(mut self, sphere: Sphere) -> Self {
         self.objects.push(sphere);
         self
     }
     
-    fn light(&self) -> Light {
+    pub fn light(&self) -> Light {
         self.light
     }
 
-    fn objects(&self) -> &[Sphere] {
+    pub fn objects(&self) -> &[Sphere] {
         &self.objects
     }
 
-    fn intersect(&self, ray: Ray) -> Intersections {
+    pub fn intersect(&self, ray: Ray) -> Intersections {
         let mut intersections = Intersections::default();
         for object in self.objects.iter() {
             let inters = object.intersect(&ray);
@@ -41,13 +41,13 @@ impl World {
         intersections
     }
 
-    fn shade_hit(&self, comps: Computations) -> Color {
+    pub fn shade_hit(&self, comps: Computations) -> Color {
         comps.object()
             .material()
             .lighting(self.light, comps.point(), comps.eyev(), comps.normalv())
     }
 
-    fn color_at(&self, ray: Ray) -> Color {
+    pub fn color_at(&self, ray: Ray) -> Color {
         self.intersect(ray).hit()
             .map(|i| self.shade_hit(i.prepare_computations(ray)))
             .unwrap_or(Color::new(0, 0, 0))
