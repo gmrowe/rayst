@@ -76,7 +76,7 @@ fn chapter_5_putting_it_together() -> String {
         let vec = (Tup::point(x, y, z) - camera).normalize();
         let ray = Ray::new(camera, vec);
         let xs = sphere.intersect(&ray);
-        if let Some(_) = xs.hit() {
+        if xs.hit().is_some() {
             *pixel = red;
         }
     }
@@ -123,7 +123,7 @@ fn chapter_6_putting_it_together() -> Vec<u8> {
         let percent_complete = (row * CANVAS_WIDTH + col) as f64 / PIXEL_COUNT  as f64 * 100.0;
         print!("{:.0}% complete\r", percent_complete);
     }
-    print!("\n");
+    println!();
     canvas.to_p6_ppm()
 }
 

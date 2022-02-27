@@ -50,7 +50,7 @@ impl World {
     pub fn color_at(&self, ray: Ray) -> Color {
         self.intersect(ray).hit()
             .map(|i| self.shade_hit(i.prepare_computations(ray)))
-            .unwrap_or(Color::new(0, 0, 0))
+            .unwrap_or_else(|| Color::new(0, 0, 0))
     }
 }
 

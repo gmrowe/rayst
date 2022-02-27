@@ -42,11 +42,11 @@ impl Sphere {
         let c = sphere_to_ray_vec.dot(&sphere_to_ray_vec) - 1.0;
         let discriminant = (b * b) - (4.0 * a * c);
         if discriminant < 0.0 {
-            Intersections::new(&vec![])
+            Intersections::new(&[])
         } else {
             let t1 = Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), *self);
             let t2 = Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), *self);
-            Intersections::new(&vec![t1, t2])
+            Intersections::new(&[t1, t2])
         }
     }
 

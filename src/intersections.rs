@@ -82,7 +82,7 @@ impl Intersection {
 
 }
 
-
+#[derive(Debug, Clone, Default)]
 pub struct Intersections {
     inters: Vec<Intersection>,
 }
@@ -116,14 +116,6 @@ impl Intersections {
                 i1.t().partial_cmp(&i2.t()).expect("Intersections::hit got NaN")
             })
             .map(|is| is.to_owned())
-    }
-}
-
-impl Default for Intersections {
-    fn default() -> Self {
-        Self {
-            inters: Vec::new(),
-        }
     }
 }
 

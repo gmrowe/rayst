@@ -73,7 +73,7 @@ pub fn view_transform(from: Tup, to: Tup, up: Tup) -> Mat4 {
     let forwardv = (to - from).normalize();
     let leftv = forwardv.cross(&up.normalize());
     let upv = leftv.cross(&forwardv);
-    let orientation = Mat4::from_data(&vec![
+    let orientation = Mat4::from_data(&[
         leftv.x,     leftv.y,     leftv.z,     0.0,
         upv.x,       upv.y,       upv.z,       0.0,
         -forwardv.x, -forwardv.y, -forwardv.z, 0.0,
