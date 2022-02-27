@@ -22,7 +22,7 @@ impl Mat4 {
     }
 
     pub fn identity_matrix() -> Self {
-        Self::from_data(&vec![
+        Self::from_data(&[
             1.0, 0.0, 0.0, 0.0, 
             0.0, 1.0, 0.0, 0.0,
             0.0, 0.0, 1.0, 0.0,
