@@ -111,7 +111,7 @@ impl Default for Material {
 #[cfg(test)]
 mod materials_test {
     use super::*;
-
+     
     #[test]
     fn default_material_has_a_color() {
         let m = Material::default();
@@ -228,10 +228,5 @@ mod materials_test {
         let in_shadow = true;
         let result = m.lighting(light, position, eyev, normalv, in_shadow);
         assert_eq!(Color::new(m.ambient(), m.ambient(), m.ambient()), result);
-    }
-
-    #[test]
-    fn no_shadows_when_nothing_is_colinear_with_point_and_light() {
-        
     }
 }
