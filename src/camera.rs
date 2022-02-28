@@ -110,11 +110,8 @@ mod camera_test {
     use super::*;
     use std::f64::consts;
     use crate::transforms;
-    use crate::lights::Light;
     use crate::color::Color;
-    use crate::materials::Material;
-    use crate::spheres::Sphere;
-    use crate::test_helpers::assert_nearly_eq;
+    use crate::test_helpers::{assert_nearly_eq, default_test_world};
     
     #[test]
     fn a_camera_stores_its_hsize() {
@@ -205,26 +202,6 @@ mod camera_test {
         assert_eq!(Tup::point(0, 2, -5), r.origin());
         let sqrt_2_over_2 = 2.0_f64.sqrt() / 2.0;
         assert_eq!(Tup::vector(sqrt_2_over_2, 0.0, -sqrt_2_over_2), r.direction());
-    }
-
-    
-    fn default_test_world() -> World {
-        let light =
-            Light::point_light(Tup::point(-10, 10, -10), Color::new(1, 1, 1));
-        
-        let material = Material::default()
-            .with_color(Color::new(0.8, 1.0, 0.6))
-            .with_diffuse(0.7)
-            .with_specular(0.2);
-        let s1 = Sphere::default().with_material(material);
-        
-        let transform = transforms::scaling(0.5, 0.5, 0.5);
-        let s2 = Sphere::default().with_transform(transform);
-        
-        World::default()
-            .with_light(light)
-            .with_object(s1)
-            .with_object(s2)
     }
 
     #[test]

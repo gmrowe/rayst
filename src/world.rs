@@ -1,9 +1,9 @@
 use crate::color::Color;
+use crate::intersections::{Computations, Intersections};
 use crate::lights::Light;
 use crate::rays::Ray;
 use crate::spheres::Sphere;
 use crate::tup::Tup;
-use crate::intersections::{Intersections, Computations};
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct World {
@@ -13,17 +13,14 @@ pub struct World {
 
 impl World {
     pub fn with_light(self, light: Light) -> Self {
-        Self {
-            light,
-            ..self
-        }
+        Self { light, ..self }
     }
 
     pub fn with_object(mut self, sphere: Sphere) -> Self {
         self.objects.push(sphere);
         self
     }
-    
+
     pub fn light(&self) -> Light {
         self.light
     }
@@ -42,18 +39,22 @@ impl World {
     }
 
     pub fn shade_hit(&self, comps: Computations) -> Color {
-        comps.object()
-            .material()
-            .lighting(self.light, comps.point(), comps.eyev(), comps.normalv(), false)
+        comps.object().material().lighting(
+            self.light,
+            comps.point(),
+            comps.eyev(),
+            comps.normalv(),
+            false,
+        )
     }
 
     pub fn color_at(&self, ray: Ray) -> Color {
-        self.intersect(ray).hit()
+        self.intersect(ray)
+            .hit()
             .map(|i| self.shade_hit(i.prepare_computations(ray)))
             .unwrap_or_else(|| Color::new(0, 0, 0))
     }
 }
-
 
 impl Default for World {
     fn default() -> Self {
@@ -67,30 +68,10 @@ impl Default for World {
 #[cfg(test)]
 mod world_test {
     use super::*;
-    use crate::materials::Material;
     use crate::intersections::Intersection;
-    use crate::transforms;
-    use crate::test_helpers::assert_nearly_eq;
+    use crate::materials::Material;
+    use crate::test_helpers::{assert_nearly_eq, default_test_world};
 
-    fn default_test_world() -> World {
-        let light =
-            Light::point_light(Tup::point(-10, 10, -10), Color::new(1, 1, 1));
-        
-        let material = Material::default()
-            .with_color(Color::new(0.8, 1.0, 0.6))
-            .with_diffuse(0.7)
-            .with_specular(0.2);
-        let s1 = Sphere::default().with_material(material);
-        
-        let transform = transforms::scaling(0.5, 0.5, 0.5);
-        let s2 = Sphere::default().with_transform(transform);
-        
-        World::default()
-            .with_light(light)
-            .with_object(s1)
-            .with_object(s2)
-    }
-    
     #[test]
     fn an_new_world_has_default_black_light_source() {
         let world = World::default();
@@ -131,8 +112,10 @@ mod world_test {
 
     #[test]
     fn shading_an_intersection_from_the_inside() {
-        let w = default_test_world()
-            .with_light(Light::point_light(Tup::point(0.0, 0.25, 0.0), Color::new(1, 1, 1)));
+        let w = default_test_world().with_light(Light::point_light(
+            Tup::point(0.0, 0.25, 0.0),
+            Color::new(1, 1, 1),
+        ));
         let r = Ray::new(Tup::point(0, 0, 0), Tup::vector(0, 0, 1));
         let shape = w.objects()[1];
         let i = Intersection::new(0.5, shape);
@@ -167,5 +150,5 @@ mod world_test {
         let r = Ray::new(Tup::point(0.0, 0.0, 0.75), Tup::vector(0, 0, -1));
         let c = w.color_at(r);
         assert_eq!(inner.material().color(), c);
-    }    
+    }
 }
