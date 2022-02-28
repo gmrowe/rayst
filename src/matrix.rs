@@ -258,10 +258,7 @@ impl PartialEq for Mat2 {
 #[cfg(test)]
 mod matrix_tests  {
     use super::*;
-
-    fn assert_nearly_eq(a: f64, b: f64) {
-        assert!(nearly_eq(a, b));
-    }
+    use crate::test_helpers::assert_nearly_eq;
 
     #[test]
     fn construct_and_inspect_a_4x4_matrix() {

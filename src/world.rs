@@ -70,7 +70,7 @@ mod world_test {
     use crate::materials::Material;
     use crate::intersections::Intersection;
     use crate::transforms;
-    use crate::math_helpers::nearly_eq;
+    use crate::test_helpers::assert_nearly_eq;
 
     fn default_test_world() -> World {
         let light =
@@ -90,11 +90,7 @@ mod world_test {
             .with_object(s1)
             .with_object(s2)
     }
-
-    fn assert_nearly_eq(a: f64, b: f64) {
-        assert!(nearly_eq(a, b));
-    }
-
+    
     #[test]
     fn an_new_world_has_default_black_light_source() {
         let world = World::default();

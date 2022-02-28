@@ -229,4 +229,9 @@ mod materials_test {
         let result = m.lighting(light, position, eyev, normalv, in_shadow);
         assert_eq!(Color::new(m.ambient(), m.ambient(), m.ambient()), result);
     }
+
+    #[test]
+    fn no_shadows_when_nothing_is_colinear_with_point_and_light() {
+        
+    }
 }

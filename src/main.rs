@@ -9,6 +9,7 @@ mod matrix;
 mod rays;
 mod spheres;
 mod transforms;
+mod test_helpers;
 mod tup;
 mod world;
 

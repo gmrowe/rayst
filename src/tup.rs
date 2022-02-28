@@ -149,10 +149,7 @@ impl Div<f64> for Tup {
 #[cfg(test)]
 mod tup_tests {
     use super::*;
-
-    fn assert_nearly_eq(a: f64, b: f64) {
-        assert!(nearly_eq(a, b));
-    }
+    use crate::test_helpers::assert_nearly_eq;
 
     #[test]
     fn a_tup_stores_its_x_value() {

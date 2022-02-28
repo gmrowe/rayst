@@ -130,12 +130,8 @@ impl Index<usize> for Intersections {
 #[cfg(test)]
 mod intersections_test {
     use super::*;
-    use crate::math_helpers::nearly_eq;
+    use crate::test_helpers::assert_nearly_eq;
   
-    fn assert_nearly_eq(a: f64, b: f64) {
-        assert!(nearly_eq(a, b));
-    }
-    
     #[test]
     fn an_intersection_encapsulates_a_t() {
         let s = Sphere::default();

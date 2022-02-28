@@ -91,12 +91,8 @@ impl Default for Sphere {
 #[cfg(test)]
 mod spheres_test {
     use super::*;
-    use crate::math_helpers;
     use crate::transforms;
-
-    fn assert_nearly_eq(a: f64, b: f64) {
-        assert!(math_helpers::nearly_eq(a, b));
-    }
+    use crate::test_helpers::assert_nearly_eq;
 
     #[test]
     fn two_spheres_are_not_the_same() {

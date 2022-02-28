@@ -109,16 +109,12 @@ impl Camera {
 mod camera_test {
     use super::*;
     use std::f64::consts;
-    use crate::math_helpers::nearly_eq;
     use crate::transforms;
     use crate::lights::Light;
     use crate::color::Color;
     use crate::materials::Material;
     use crate::spheres::Sphere;
-
-    fn assert_nearly_eq(a: f64, b: f64) {
-        assert!(nearly_eq(a, b));
-    }
+    use crate::test_helpers::assert_nearly_eq;
     
     #[test]
     fn a_camera_stores_its_hsize() {

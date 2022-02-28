@@ -150,10 +150,10 @@ impl Mul<Color> for Color {
 #[cfg(test)]
 mod color_tests {
     use super::*;
-
-    fn assert_nearly_eq(a: f64, b: f64) {
-        assert!((a - b).abs() < f64::EPSILON);
-    }
+    use crate::test_helpers::assert_nearly_eq;
+    // fn assert_nearly_eq(a: f64, b: f64) {
+    //     assert!((a - b).abs() < f64::EPSILON);
+    // }
 
     #[test]
     fn colors_have_a_red_component() {
