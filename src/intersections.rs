@@ -1,3 +1,4 @@
+use crate::math_helpers::EPSILON;
 use crate::rays::Ray;
 use crate::spheres::Sphere;
 use crate::tup::Tup;
@@ -11,11 +12,25 @@ pub struct Computations {
     eyev: Tup,
     normalv: Tup,
     inside: bool,
+    over_point: Tup,
 }
 
 impl Computations {
-    fn new(t: f64, object: Sphere, point: Tup, eyev: Tup, normalv: Tup, inside: bool) -> Self {
-        Self { t, object, point, eyev, normalv, inside }
+    fn new(intersection: Intersection, ray: Ray) -> Self {
+        let point = ray.position(intersection.t());
+        let eyev = -ray.direction();
+        let n = intersection.object().normal_at(point);
+        let inside = n.dot(&eyev) < 0.0;
+        let normalv = if inside { -n } else { n };
+        Self {
+            t: intersection.t(),
+            object: intersection.object(),
+            point,
+            eyev,
+            normalv,
+            inside,
+            over_point: point + (normalv * EPSILON),
+        }
     }
     
     pub fn t(&self) -> f64 {
@@ -40,6 +55,10 @@ impl Computations {
 
     pub fn inside(&self) -> bool {
         self.inside
+    }
+
+    pub fn over_point(&self) -> Tup {
+        self.over_point
     }
 }
 
@@ -66,18 +85,7 @@ impl Intersection {
     }
     
     pub fn prepare_computations(&self, ray: Ray) -> Computations {
-        let pt = ray.position(self.t());
-        let eyev = -ray.direction();
-        let normalv = self.object().normal_at(pt);
-        let inside = normalv.dot(&eyev) < 0.0;
-        Computations::new(
-            self.t(),
-            self.object(),
-            pt,
-            eyev,
-            if inside { -normalv } else { normalv },
-            inside
-        )
+        Computations::new(*self, ray)
     }
 
 }
@@ -131,6 +139,7 @@ impl Index<usize> for Intersections {
 mod intersections_test {
     use super::*;
     use crate::test_helpers::assert_nearly_eq;
+    use crate::transforms::translation;
   
     #[test]
     fn an_intersection_encapsulates_a_t() {
@@ -233,5 +242,23 @@ mod intersections_test {
         assert_eq!(comps.eyev(), Tup::vector(0, 0, -1));
         assert!(comps.inside());
         assert_eq!(comps.normalv(), Tup::vector(0, 0, -1));
+    }
+
+    #[test]
+    fn the_hit_should_offset_the_point_by_a_small_amount() {
+        let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
+        let shape = Sphere::default().with_transform(translation(0, 0, 1));
+        let i = Intersection::new(5, shape);
+        let comps = i.prepare_computations(r);
+        assert!(comps.over_point().z < -EPSILON/2.0);
+    }
+
+    #[test]
+    fn the_hit_should_offset_in_the_direction_of_the_normal() {
+        let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
+        let shape = Sphere::default().with_transform(translation(0, 0, 1));
+        let i = Intersection::new(5, shape);
+        let comps = i.prepare_computations(r);
+        assert!(comps.point().z > comps.over_point().z);        
     }
 }
