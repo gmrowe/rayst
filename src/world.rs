@@ -1,4 +1,5 @@
 use crate::color::Color;
+use crate::color::consts;
 use crate::intersections::{Computations, Intersections};
 use crate::lights::Light;
 use crate::rays::Ray;
@@ -39,12 +40,13 @@ impl World {
     }
 
     pub fn shade_hit(&self, comps: Computations) -> Color {
+        let shadowed = self.is_shadowed(comps.over_point());
         comps.object().material().lighting(
             self.light,
-            comps.point(),
+            comps.over_point(),
             comps.eyev(),
             comps.normalv(),
-            false,
+            shadowed,
         )
     }
 
@@ -52,14 +54,22 @@ impl World {
         self.intersect(ray)
             .hit()
             .map(|i| self.shade_hit(i.prepare_computations(ray)))
-            .unwrap_or_else(|| Color::new(0, 0, 0))
+            .unwrap_or_else(|| consts::BLACK)
+    }
+
+    pub fn is_shadowed(&self, point: Tup) -> bool {
+        let point_to_lightv = self.light().position() - point;
+        let distance = point_to_lightv.magnitude();
+        let ray = Ray::new(point, point_to_lightv.normalize());
+        let inters = self.intersect(ray);
+        inters.hit().map_or(false, |i| i.t() < distance)
     }
 }
 
 impl Default for World {
     fn default() -> Self {
         Self {
-            light: Light::point_light(Tup::point(0, 0, 0), Color::new(0, 0, 0)),
+            light: Light::point_light(Tup::point(0, 0, 0), consts::BLACK),
             objects: Vec::new(),
         }
     }
@@ -71,6 +81,7 @@ mod world_test {
     use crate::intersections::Intersection;
     use crate::materials::Material;
     use crate::test_helpers::{assert_nearly_eq, default_test_world};
+    use crate::transforms::{translation};
 
     #[test]
     fn an_new_world_has_default_black_light_source() {
@@ -151,4 +162,48 @@ mod world_test {
         let c = w.color_at(r);
         assert_eq!(inner.material().color(), c);
     }
+
+    #[test]
+    fn no_shadows_when_nothing_is_colinear_with_point_and_light() {
+        let world = default_test_world();
+        let p = Tup::point(0, 10, 0);
+        assert!(!world.is_shadowed(p));
+    }
+
+    #[test]
+    fn is_shadowed_when_object_between_point_and_light() {
+        let world = default_test_world();
+        let p = Tup::point(10, -10, 10);
+        assert!(world.is_shadowed(p));
+    }
+
+    #[test]
+    fn no_shadow_when_object_is_behind_light() {
+        let world = default_test_world();
+        let p = Tup::point(-20, 20, -20);
+        assert!(!world.is_shadowed(p));
+    }
+
+    #[test]
+    fn no_shadow_when_object_is_behind_point() {
+        let world = default_test_world();
+        let p = Tup::point(-2, 2, -2);
+        assert!(!world.is_shadowed(p));
+    }
+
+    #[test]
+    fn shade_hit_responds_correctly_when_given_an_intersection_in_shadow() {
+        let light = Light::point_light(Tup::point(0, 0, -10), consts::WHITE);
+        let s1 = Sphere::default();
+        let s2 = Sphere::default().with_transform(translation(0, 0, 10));
+        let world = World::default()
+            .with_light(light)
+            .with_object(s1)
+            .with_object(s2);
+        let ray = Ray::new(Tup::point(0, 0, 5), Tup::vector(0, 0, 1));
+        let i = Intersection::new(4, s2);
+        let comps = i.prepare_computations(ray);
+        let color = world.shade_hit(comps);
+        assert_eq!(Color::new(0.1, 0.1, 0.1), color);
+    }    
 }
