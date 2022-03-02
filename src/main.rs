@@ -7,6 +7,7 @@ mod materials;
 mod math_helpers;
 mod matrix;
 mod rays;
+mod shapes;
 mod spheres;
 mod transforms;
 mod test_helpers;
