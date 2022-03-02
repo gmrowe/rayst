@@ -89,6 +89,12 @@ impl Mat4 {
     }
 }
 
+impl Default for Mat4 {
+    fn default() -> Self {
+        Self::identity_matrix()
+    }
+}
+
 impl Index<(usize, usize)> for Mat4 {
     type Output = f64;
 
