@@ -1,13 +1,13 @@
 use crate::math_helpers::EPSILON;
 use crate::rays::Ray;
-use crate::spheres::Sphere;
+use crate::shapes::Shape;
 use crate::tup::Tup;
 use std::ops::Index;
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+type Object = Box<dyn Shape>;
+
 pub struct Computations {
-    t: f64,
-    object: Sphere,
+    intersection: Intersection,
     point: Tup,
     eyev: Tup,
     normalv: Tup,
@@ -16,15 +16,14 @@ pub struct Computations {
 }
 
 impl Computations {
-    fn new(intersection: Intersection, ray: Ray) -> Self {
+    fn new(intersection: &Intersection, ray: &Ray) -> Self {
         let point = ray.position(intersection.t());
         let eyev = -ray.direction();
         let n = intersection.object().normal_at(point);
         let inside = n.dot(&eyev) < 0.0;
         let normalv = if inside { -n } else { n };
         Self {
-            t: intersection.t(),
-            object: intersection.object(),
+            intersection: intersection.clone(),
             point,
             eyev,
             normalv,
@@ -34,11 +33,11 @@ impl Computations {
     }
     
     pub fn t(&self) -> f64 {
-        self.t
+        self.intersection.t()
     }
 
-    pub fn object(&self) -> Sphere {
-        self.object
+    pub fn object(&self) -> &Object {
+        self.intersection.object()
     }
 
     pub fn point(&self) -> Tup {
@@ -62,17 +61,31 @@ impl Computations {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Clone)]
 pub struct Intersection {
     t: f64,
-    object: Sphere,
+    object: Object,
 }
 
 impl Intersection {
-    pub fn new<T: Into<f64>>(t: T, s: Sphere) -> Self {
+    pub fn new<T, U>(t: T, s: U) -> Self
+    where
+        T: Into<f64>,
+        U: 'static + Shape,
+    {
         Self {
             t: t.into(),
-            object: s
+            object: Box::new(s),
+        }
+    }
+
+    pub fn from_boxed_shape<T>(t: T, s: Box<dyn Shape>) -> Self
+    where
+        T: Into<f64>,
+    {
+        Self {
+            t: t.into(),
+            object: s,
         }
     }
 
@@ -80,17 +93,16 @@ impl Intersection {
         self.t
     }
 
-    pub fn object(&self) -> Sphere {
-        self.object
+    pub fn object(&self) -> &Object {
+        &self.object
     }
     
     pub fn prepare_computations(&self, ray: Ray) -> Computations {
-        Computations::new(*self, ray)
+        Computations::new(self, &ray)
     }
 
 }
 
-#[derive(Debug, Clone, Default)]
 pub struct Intersections {
     inters: Vec<Intersection>,
 }
@@ -98,7 +110,7 @@ pub struct Intersections {
 impl Intersections {
     pub fn new(inters: &[Intersection]) -> Self {
         Self {
-            inters: inters.to_vec(),
+            inters: inters.to_owned(),
         }
     }
 
@@ -117,13 +129,12 @@ impl Intersections {
         self.inters.len()
     }
 
-    pub fn hit(&self) -> Option<Intersection> {
+    pub fn hit(&self) -> Option<&Intersection> {
         self.inters.iter()
             .filter(|inter| inter.t() > 0.0)
             .min_by(|i1, i2| {
                 i1.t().partial_cmp(&i2.t()).expect("Intersections::hit got NaN")
             })
-            .map(|is| is.to_owned())
     }
 }
 
@@ -135,10 +146,19 @@ impl Index<usize> for Intersections {
     }
 }
 
+impl Default for Intersections {
+    fn default() -> Self {
+        Self {
+            inters: Vec::new(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod intersections_test {
     use super::*;
     use crate::test_helpers::assert_nearly_eq;
+    use crate::spheres::Sphere;
     use crate::transforms::translation;
   
     #[test]
@@ -152,7 +172,8 @@ mod intersections_test {
     fn an_intersection_encapsulates_an_object() {
         let s = Sphere::default();
         let intersection = Intersection::new(3.5, s);
-        assert_eq!(s, intersection.object())
+        assert_eq!(s.material(), intersection.object().material());
+        assert_eq!(s.transform(), intersection.object().transform());
     }
 
      #[test]
@@ -175,7 +196,7 @@ mod intersections_test {
         let i2 = Intersection::new(2, s);
         let xs = Intersections::new(&vec![i1, i2]);
         let i = xs.hit();
-        assert_eq!(Some(i1), i);
+        assert_eq!(1.0, i.expect("No hit occured").t());
     }
 
     #[test]
@@ -185,7 +206,7 @@ mod intersections_test {
         let i2 = Intersection::new(1, s);
         let xs = Intersections::new(&vec![i1, i2]);
         let i = xs.hit();
-        assert_eq!(Some(i2), i); 
+        assert_eq!(1.0, i.expect("No hit occured").t()); 
     }
 
     #[test]
@@ -195,7 +216,7 @@ mod intersections_test {
         let i2 = Intersection::new(-1, s);
         let xs = Intersections::new(&vec![i1, i2]);
         let i = xs.hit();
-        assert_eq!(None, i); 
+        assert!(i.is_none()); 
     }
 
     #[test]
@@ -207,7 +228,7 @@ mod intersections_test {
         let i4 = Intersection::new(2, s);
         let xs = Intersections::new(&vec![i1, i2, i3, i4]);
         let i = xs.hit();
-        assert_eq!(Some(i4), i); 
+        assert_eq!(2.0, i.expect("No hit occured").t()); 
     }
 
     #[test]
@@ -217,7 +238,8 @@ mod intersections_test {
         let i = Intersection::new(4, shape);
         let comps = i.prepare_computations(r);
         assert_eq!(comps.t(), i.t());
-        assert_eq!(comps.object(), i.object());
+        assert_eq!(comps.object().material(), i.object().material());
+        assert_eq!(comps.object().transform(), i.object().transform());
         assert_eq!(comps.point(), Tup::point(0, 0, -1));
         assert_eq!(comps.eyev(), Tup::vector(0, 0, -1));
         assert_eq!(comps.normalv(), Tup::vector(0, 0, -1));
