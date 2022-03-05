@@ -18,6 +18,7 @@ mod world;
 use camera::Camera;
 use canvas::Canvas;
 use color::Color;
+use planes::Plane;
 use std::fs;
 use std::f64::consts;
 use lights::Light;
@@ -25,6 +26,7 @@ use materials::Material;
 use tup::Tup;
 use spheres::Sphere;
 use world::World;
+use color::consts as col;
 
 
 fn background_material() -> Material {
@@ -33,40 +35,22 @@ fn background_material() -> Material {
         .with_specular(0.0)
 }
 
-fn floor() -> Sphere {
-    let floor_transform = transforms::scaling(10.0, 0.01, 10.0);
-    
-    Sphere::default()
-        .with_transform(floor_transform)
-        .with_material(background_material())
+fn camera() -> Camera {
+    const CANVAS_WIDTH: usize = 1800;
+    const CANVAS_HEIGHT: usize = 900;
+    const CAMERA_FIELD_OF_VIEW: f64 = consts::PI / 3.0;
+    let from = Tup::point(0.0, 1.5, -5.0);
+    let to = Tup::point(0.0, 1.0, 0.0);
+    let up = Tup::vector(0.0, 1.0, 0.0);
+    let camera_transform = transforms::view_transform(from, to, up);
+    Camera::new(CANVAS_WIDTH, CANVAS_HEIGHT, CAMERA_FIELD_OF_VIEW)
+        .with_transform(camera_transform)
+        .with_progress_logging()
 }
 
-fn left_wall() -> Sphere {
-    let translation = transforms::translation(0.0, 0.0, 5.0);
-    let rot_y = transforms::rotation_y(-consts::PI/4.0);
-    let rot_x = transforms::rotation_x(consts::PI/2.0);
-    let scaling = transforms::scaling(10.0, 0.01, 10.0);
-    let left_wall_transform = translation * rot_y * rot_x * scaling;
-
-    Sphere::default()
-        .with_transform(left_wall_transform)
-        .with_material(background_material())
-}
-
-fn right_wall() -> Sphere {
-    let translation = transforms::translation(0.0, 0.0, 5.0);
-    let rot_y = transforms::rotation_y(consts::PI/4.0);
-    let rot_x = transforms::rotation_x(consts::PI/2.0);
-    let scaling = transforms::scaling(10.0, 0.01, 10.0);
-    let right_wall_transform = translation * rot_y * rot_x * scaling;
-
-    Sphere::default()
-        .with_transform(right_wall_transform)
-        .with_material(background_material())
-}
 
 fn middle_sphere() -> Sphere {
-    let translation = transforms::translation(-0.5, 1.0, 0.5);
+    let translation = transforms::translation(0.0, 0.85, -0.12);
     let color = Color::from_hex(0x8C11D9);
     let diffuse = 0.7;
     let specular = 0.3;
@@ -114,43 +98,91 @@ fn left_sphere() -> Sphere {
         .with_material(material)
 }
 
-fn camera() -> Camera {
-    const CANVAS_WIDTH: usize = 1200;
-    const CANVAS_HEIGHT: usize = 600;
-    const CAMERA_FIELD_OF_VIEW: f64 = consts::PI / 3.0;
-    let from = Tup::point(0.0, 1.5, -5.0);
-    let to = Tup::point(0.0, 1.0, 0.0);
-    let up = Tup::vector(0.0, 1.0, 0.0);
-    let camera_transform = transforms::view_transform(from, to, up);
-    Camera::new(CANVAS_WIDTH, CANVAS_HEIGHT, CAMERA_FIELD_OF_VIEW)
-        .with_transform(camera_transform)
-        .with_progress_logging()
-}
-
 fn light_source() -> Light {
     let light_position = Tup::point(-10, 10, -10);
     let light_intensity = Color::new(1, 1, 1);
     Light::point_light(light_position, light_intensity)
 }
 
-fn chapter_7_putting_it_together() -> Canvas {
+fn plane_floor()-> Plane {
+    const FLOOR_SPECULAR: f64 = 0.3;
+    const FLOOR_SHININESS: f64 = 200.0;
+    let floor_color = col::GRAY;
+    
+    let material = Material::default()
+        .with_specular(FLOOR_SPECULAR)
+        .with_shininess(FLOOR_SHININESS)
+        .with_color(floor_color);
+    
+    Plane::default()
+        .with_material(material)
+}
+
+fn back_wall() -> Plane {
+    const WALL_SPECULAR: f64 = 0.3;
+    const WALL_SHININESS: f64 = 10.0;
+    let wall_color = col::MAGENTA;
+    
+    let material = Material::default()
+        .with_specular(WALL_SPECULAR)
+        .with_shininess(WALL_SHININESS)
+        .with_color(wall_color);
+
+    let rot_x = transforms::rotation_x(consts::PI/2.0);
+    let translate = transforms::translation(0, 0, 10);
+    
+    Plane::default()
+        .with_material(material)
+        .with_transform(translate * rot_x)
+}
+
+fn plane_wall_color() -> Color {
+    col::CYAN + (col::GREEN * 0.25)
+}
+
+fn left_plane_wall() -> Plane {
+    let translation = transforms::translation(0.0, 0.0, 10.0);
+    let rot_y = transforms::rotation_y(-consts::PI/4.0);
+    let rot_x = transforms::rotation_x(consts::PI/2.0);
+    let left_wall_transform = translation * rot_y * rot_x;
+
+    Plane::default()
+        .with_transform(left_wall_transform)
+        .with_material(background_material().with_color(plane_wall_color()))
+}
+
+fn right_plane_wall() -> Plane {
+    let translation = transforms::translation(0.0, 0.0, 10.0);
+    let rot_y = transforms::rotation_y(consts::PI/4.0);
+    let rot_x = transforms::rotation_x(consts::PI/2.0);
+    let right_wall_transform = translation * rot_y * rot_x;
+
+    Plane::default()
+        .with_transform(right_wall_transform)
+        .with_material(background_material().with_color(plane_wall_color()))
+}
+
+
+fn spheres_in_a_corner() -> Canvas {
     let camera = camera();
     let world = World::default()
         .with_light(light_source())
-        .with_object(floor())
-        .with_object(left_wall())
-        .with_object(right_wall())
-        .with_object(middle_sphere())
+        .with_object(plane_floor())
+        .with_object(right_plane_wall())
+        .with_object(left_plane_wall())
+        .with_object(left_sphere())
         .with_object(right_sphere())
-        .with_object(left_sphere());
-    
+        .with_object(middle_sphere());
+
     camera.render(&world)
 }
 
 fn main() -> std::io::Result<()> {
-    let canvas = chapter_7_putting_it_together();
+    let image_name = "spheres_in_a_corner";
+    let canvas = spheres_in_a_corner();
     let pixels = canvas.to_p6_ppm();
-    fs::write("scene.ppm", pixels)?;
+    let file_name = format!("{}.ppm", image_name);
+    fs::write(file_name, pixels)?;
     Ok(())
 }
 
