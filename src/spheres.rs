@@ -3,6 +3,7 @@ use crate::matrix::Mat4;
 use crate::tup::Tup;
 use crate::rays::Ray;
 use crate::intersections::{Intersection, Intersections};
+use crate::shapes::Shape;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 static ID_GEN: AtomicUsize = AtomicUsize::new(0);
@@ -32,50 +33,6 @@ impl Sphere {
             ..self
         }
     }
-    
-    pub fn intersect(&self, ray_object_space: &Ray) -> Intersections {
-        let center_of_sphere = Tup::point(0.0, 0.0, 0.0);
-        let ray_world_space = ray_object_space.transform(&self.transform().inverse());
-        let sphere_to_ray_vec = ray_world_space.origin() - center_of_sphere;
-        let a = ray_world_space.direction().dot(&ray_world_space.direction());
-        let b = 2.0 * ray_world_space.direction().dot(&sphere_to_ray_vec);
-        let c = sphere_to_ray_vec.dot(&sphere_to_ray_vec) - 1.0;
-        let discriminant = (b * b) - (4.0 * a * c);
-        if discriminant < 0.0 {
-            Intersections::new(&[])
-        } else {
-            let t1 = Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), *self);
-            let t2 = Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), *self);
-            Intersections::new(&[t1, t2])
-        }
-    }
-
-    pub fn transform(&self) -> Mat4 {
-        self.transform
-    }
-
-    pub fn set_transform(self, transform: Mat4) -> Self {
-        Self {
-            transform,
-            ..self
-        }
-    }
-
-    pub fn normal_at(&self, world_point: Tup) -> Tup {
-        let inv_xform = self.transform().inverse();
-        let obj_point = inv_xform * world_point;
-        let obj_normal = obj_point - Tup::point(0, 0, 0);
-        let world_normal = inv_xform.transpose() * obj_normal;
-
-        // Hack to ensure that w = 1.0 - See pg. 82
-        let world_normal_vec =
-            Tup::vector(world_normal.x, world_normal.y, world_normal.z);
-        world_normal_vec.normalize()
-    }
-
-    pub fn material(&self) -> Material {
-        self.material
-    }
 }
 
 impl Default for Sphere {
@@ -85,6 +42,45 @@ impl Default for Sphere {
             transform: Mat4::identity_matrix(),
             material: Material::default(),
         }
+    }
+}
+
+impl Shape for Sphere {
+    fn transform(&self) -> Mat4 {
+        self.transform
+    }
+
+    fn set_transform(&mut self, transform: Mat4) {
+        self.transform = transform;
+    }
+
+    fn material(&self) -> Material {
+        self.material
+    }
+
+    fn set_material(&mut self, material: Material) {
+        self.material = material;
+    }
+    
+    fn local_intersect(&self, local_ray: Ray) -> Intersections {
+        let center_of_sphere = Tup::point(0.0, 0.0, 0.0);
+        let sphere_to_ray_vec = local_ray.origin() - center_of_sphere;
+        let a = local_ray.direction().dot(&local_ray.direction());
+        let b = 2.0 * local_ray.direction().dot(&sphere_to_ray_vec);
+        let c = sphere_to_ray_vec.dot(&sphere_to_ray_vec) - 1.0;
+        let discriminant = (b * b) - (4.0 * a * c);
+        if discriminant < 0.0 {
+            Intersections::new(&vec![])
+        } else {
+            let t1 = Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), *self);
+            let t2 = Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), *self);
+            Intersections::new(&vec![t1, t2])
+        }
+   
+    }
+    
+    fn local_normal_at(&self, point: Tup) -> Tup {
+        point - Tup::point(0, 0, 0)
     }
 }
 
@@ -130,8 +126,10 @@ mod spheres_test {
         let ray = Ray::new(Tup::point(0.0, 0.0, -5.0), Tup::vector(0.0, 0.0, 1.0));
         let sphere = Sphere::default();
         let xs = sphere.intersect(&ray);
-        assert_eq!(sphere, xs[0].object());
-        assert_eq!(sphere, xs[1].object());
+        assert_eq!(sphere.material(), xs[0].object().material());
+        assert_eq!(sphere.transform(), xs[0].object().transform());
+        assert_eq!(sphere.material(), xs[1].object().material());
+        assert_eq!(sphere.transform(), xs[1].object().transform());
     }    
     
     #[test]
@@ -212,7 +210,8 @@ mod spheres_test {
         let ray = Ray::new(Tup::point(0.0, 0.0, 5.0), Tup::vector(0.0, 0.0, 1.0));
         let sphere = Sphere::default();
         let xs = sphere.intersect(&ray);
-        assert_eq! (sphere, xs[0].object()); 
+        assert_eq!(sphere.material(), xs[0].object().material());
+        assert_eq!(sphere.transform(), xs[0].object().transform());
     }
 
     #[test]
@@ -225,7 +224,7 @@ mod spheres_test {
     fn a_spheres_transform_can_be_set() {
         let mut sphere = Sphere::default();
         let t = transforms::translation(2, 3, 4);
-        sphere = sphere.set_transform(t);
+        sphere.set_transform(t);
         assert_eq!(t, sphere.transform())
     }
 
@@ -233,7 +232,7 @@ mod spheres_test {
     fn a_sphere_transforms_a_ray_before_calculating_intersects_when_scaled() {
         let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
         let mut s = Sphere::default();
-        s = s.set_transform(transforms::scaling(2, 2, 2));
+        s.set_transform(transforms::scaling(2, 2, 2));
         let xs = s.intersect(&r);
         assert_eq!(2, xs.len());
         assert_nearly_eq(3.0, xs[0].t());
@@ -244,7 +243,7 @@ mod spheres_test {
     fn a_sphere_transforms_a_ray_before_calculating_intersects_when_translated() {
         let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
         let mut s = Sphere::default();
-        s = s.set_transform(transforms::translation(5, 0, 0));
+        s.set_transform(transforms::translation(5, 0, 0));
         let xs = s.intersect(&r);
         assert_eq!(0, xs.len());
     }
