@@ -4,7 +4,7 @@ use crate::materials::Material;
 use crate::rays::Ray;
 use crate::tup::Tup;
 
-trait Shape {
+pub trait Shape: ShapeClone {
     fn transform(&self) -> Mat4;
 
     fn set_transform(&mut self, transform: Mat4);
@@ -13,7 +13,7 @@ trait Shape {
 
     fn set_material(&mut self, material: Material);
     
-    fn intersect(&self, ray: Ray) -> Intersections {
+    fn intersect(&self, ray: &Ray) -> Intersections {
         let local_ray = ray.transform(&self.transform().inverse());
         self.local_intersect(local_ray)
     }
@@ -34,6 +34,26 @@ trait Shape {
     fn local_normal_at(&self, point: Tup) -> Tup;
 }
 
+pub trait ShapeClone {
+    fn clone_box(&self) -> Box<dyn Shape>;
+}
+
+
+impl<T> ShapeClone for T
+where
+    T: 'static + Shape + Clone,
+{
+    fn clone_box(&self) -> Box<dyn Shape> {
+        Box::new(self.clone())
+    }
+}
+
+impl Clone for Box<dyn Shape> {
+    fn clone(&self) -> Box<dyn Shape> {
+        self.clone_box()
+    }
+}
+
 #[cfg(test)]
 mod shape_tests {
     use super::*;
@@ -42,6 +62,7 @@ mod shape_tests {
 
     static mut SAVED_RAY: Option<Ray> = None;
 
+    #[derive(Clone)]
     struct TestShape {
         transform: Option<Mat4>,
         material: Option<Material>,
@@ -118,7 +139,7 @@ mod shape_tests {
         let ray = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
         let mut shape = TestShape::default();
         shape.set_transform(transforms::scaling(2, 2, 2));
-        let _xs = shape.intersect(ray);
+        let _xs = shape.intersect(&ray);
         unsafe {
             assert_eq!(Tup::point(0.0, 0.0, -2.5), SAVED_RAY.expect("No saved ray").origin());
             assert_eq!(Tup::vector(0.0, 0.0, 0.5), SAVED_RAY.expect("No saved ray").direction());
@@ -130,7 +151,7 @@ mod shape_tests {
         let ray = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
         let mut shape = TestShape::default();
         shape.set_transform(transforms::translation(5, 0, 0));
-        let _xs = shape.intersect(ray);
+        let _xs = shape.intersect(&ray);
         unsafe {
             assert_eq!(Tup::point(-5, 0, -5), SAVED_RAY.expect("No saved ray").origin());
             assert_eq!(Tup::vector(0.0, 0.0, 1.0), SAVED_RAY.expect("No saved ray").direction());
