@@ -3,13 +3,15 @@ use crate::color::consts;
 use crate::intersections::{Computations, Intersections};
 use crate::lights::Light;
 use crate::rays::Ray;
-use crate::spheres::Sphere;
+use crate::shapes::Shape;
 use crate::tup::Tup;
+use core::ops::{Index, IndexMut};
 
-#[derive(PartialEq, Debug, Clone)]
+type Object = Box<dyn Shape>;
+
 pub struct World {
     light: Light,
-    objects: Vec<Sphere>,
+    objects: Vec<Object>,
 }
 
 impl World {
@@ -17,8 +19,8 @@ impl World {
         Self { light, ..self }
     }
 
-    pub fn with_object(mut self, sphere: Sphere) -> Self {
-        self.objects.push(sphere);
+    pub fn with_object<T: 'static + Shape>(mut self, shape: T) -> Self {
+        self.objects.push(Box::new(shape));
         self
     }
 
@@ -26,8 +28,8 @@ impl World {
         self.light
     }
 
-    pub fn objects(&self) -> &[Sphere] {
-        &self.objects
+    pub fn num_objects(&self) -> usize {
+        self.objects.len()
     }
 
     pub fn intersect(&self, ray: Ray) -> Intersections {
@@ -53,8 +55,12 @@ impl World {
     pub fn color_at(&self, ray: Ray) -> Color {
         self.intersect(ray)
             .hit()
-            .map(|i| self.shade_hit(i.prepare_computations(ray)))
-            .unwrap_or_else(|| consts::BLACK)
+            .map(|i| self.shade_hit(i.clone().prepare_computations(ray)))
+            .unwrap_or(consts::BLACK)
+        // match self.intersect(ray).hit(){
+        //     Some(i) => self.shade_hit(i.clone().prepare_computations(ray)),
+        //     None => consts::BLACK
+        // }
     }
 
     pub fn is_shadowed(&self, point: Tup) -> bool {
@@ -75,6 +81,20 @@ impl Default for World {
     }
 }
 
+impl Index<usize> for World {
+    type Output = Object;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.objects[index]
+    }
+}
+
+impl IndexMut<usize> for World {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.objects[index]
+    }
+}
+
 #[cfg(test)]
 mod world_test {
     use super::*;
@@ -82,6 +102,7 @@ mod world_test {
     use crate::materials::Material;
     use crate::test_helpers::{assert_nearly_eq, default_test_world};
     use crate::transforms::{translation};
+    use crate::spheres::Sphere;
 
     #[test]
     fn an_new_world_has_default_black_light_source() {
@@ -95,7 +116,7 @@ mod world_test {
     #[test]
     fn an_new_world_has_no_objects() {
         let world = World::default();
-        assert!(world.objects().is_empty());
+        assert_eq!(0, world.num_objects())
     }
 
     #[test]
@@ -114,8 +135,8 @@ mod world_test {
     fn shading_an_intersection_from_the_outside() {
         let w = default_test_world();
         let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
-        let shape = w.objects()[0];
-        let i = Intersection::new(4, shape);
+        let shape = w[0].clone();
+        let i = Intersection::from_boxed_shape(4, shape);
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(comps);
         assert_eq!(Color::new(0.38066, 0.47583, 0.2855), c);
@@ -128,8 +149,8 @@ mod world_test {
             Color::new(1, 1, 1),
         ));
         let r = Ray::new(Tup::point(0, 0, 0), Tup::vector(0, 0, 1));
-        let shape = w.objects()[1];
-        let i = Intersection::new(0.5, shape);
+        let shape = w[1].clone();
+        let i = Intersection::from_boxed_shape(0.5, shape);
         let comps = i.prepare_computations(r);
         let c = w.shade_hit(comps);
         assert_eq!(Color::new(0.90498, 0.90498, 0.90498), c);
@@ -155,12 +176,14 @@ mod world_test {
     fn the_color_with_intersection_behind_a_ray() {
         let mut w = default_test_world();
         let material = Material::default().with_ambient(1.0);
-        w.objects[0] = w.objects[0].with_material(material);
-        w.objects[1] = w.objects[0].with_material(material);
-        let inner = w.objects()[1];
+        let outer = &mut w[0];
+        outer.set_material(material);
+        let inner = &mut w[1];
+        inner.set_material(material);
+        let inner_color = inner.material().color();
         let r = Ray::new(Tup::point(0.0, 0.0, 0.75), Tup::vector(0, 0, -1));
         let c = w.color_at(r);
-        assert_eq!(inner.material().color(), c);
+        assert_eq!(inner_color, c);
     }
 
     #[test]
