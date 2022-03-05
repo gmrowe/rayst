@@ -22,7 +22,6 @@ pub fn reflect_x() -> Mat4 {
     scaling(-1.0, 1.0, 1.0)
 }
 
-
 pub fn reflect_y() -> Mat4 {
     scaling(1.0, -1.0, 1.0)
 }
