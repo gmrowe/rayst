@@ -6,8 +6,18 @@ use crate::tup::Tup;
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Material {
     color: Color,
+    // Ambient reflection is background lighting or light reflected from
+    // other objects in the environment. THis is treated as constant, coloring
+    // all points equqlly
     ambient: f64,
+
+    // Diffuse reflection is light reflected from a matte surface. It depends on
+    // the angle between the light source and the surface normal
     diffuse: f64,
+
+    // Specular reflection is the reflection of the light source which causes
+    // a `specular highlight` that is often manifest as a white spot on a shiny
+    // surface
     specular: f64,
     shininess: f64,
 }
