@@ -1,5 +1,5 @@
-use crate::color::Color;
 use crate::color::consts;
+use crate::color::Color;
 use crate::intersections::{Computations, Intersections};
 use crate::lights::Light;
 use crate::rays::Ray;
@@ -57,10 +57,6 @@ impl World {
             .hit()
             .map(|i| self.shade_hit(i.clone().prepare_computations(ray)))
             .unwrap_or(consts::BLACK)
-        // match self.intersect(ray).hit(){
-        //     Some(i) => self.shade_hit(i.clone().prepare_computations(ray)),
-        //     None => consts::BLACK
-        // }
     }
 
     pub fn is_shadowed(&self, point: Tup) -> bool {
@@ -100,9 +96,9 @@ mod world_test {
     use super::*;
     use crate::intersections::Intersection;
     use crate::materials::Material;
-    use crate::test_helpers::{assert_nearly_eq, default_test_world};
-    use crate::transforms::{translation};
     use crate::spheres::Sphere;
+    use crate::test_helpers::{assert_nearly_eq, default_test_world};
+    use crate::transforms::translation;
 
     #[test]
     fn an_new_world_has_default_black_light_source() {
@@ -228,5 +224,5 @@ mod world_test {
         let comps = i.prepare_computations(ray);
         let color = world.shade_hit(comps);
         assert_eq!(Color::new(0.1, 0.1, 0.1), color);
-    }    
+    }
 }
