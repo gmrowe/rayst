@@ -1,6 +1,8 @@
 use crate::color::consts;
 use crate::color::Color;
 use crate::lights::Light;
+use crate::matrix::Mat4;
+use crate::patterns::Pattern;
 use crate::tup::Tup;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -20,6 +22,7 @@ pub struct Material {
     // surface
     specular: f64,
     shininess: f64,
+    pattern: Option<Pattern>,
 }
 
 impl Material {
@@ -41,6 +44,10 @@ impl Material {
 
     pub fn with_shininess(self, shininess: f64) -> Self {
         Self { shininess, ..self }
+    }
+
+    pub fn with_pattern(self, pattern: Pattern) -> Self {
+        Self { pattern: Some(pattern), ..self }
     }
 
     pub fn ambient(&self) -> f64 {
@@ -78,19 +85,21 @@ impl Material {
         }
     }
 
-    fn black() -> Color {
-        Color::new(0, 0, 0)
-    }
-
     pub fn lighting(
         &self,
+        object_transform: Mat4,
         light: Light,
         position: Tup,
         eyev: Tup,
         normalv: Tup,
         in_shadow: bool,
     ) -> Color {
-        let effective_color = self.color() * light.intensity();
+        let color = if let Some(p) = self.pattern {
+            p.color_at(object_transform, position)
+        } else {
+            self.color
+        };
+        let effective_color = color * light.intensity();
         let lightv = (light.position() - position).normalize();
         let ambient = effective_color * self.ambient();
         let light_dot_normal = lightv.dot(&normalv);
@@ -114,6 +123,7 @@ impl Default for Material {
             diffuse: 0.9,
             specular: 0.9,
             shininess: 200.0,
+            pattern: None,
         }
     }
 }
@@ -121,6 +131,7 @@ impl Default for Material {
 #[cfg(test)]
 mod materials_test {
     use super::*;
+    use crate::color::consts as color;
      
     #[test]
     fn default_material_has_a_color() {
@@ -159,7 +170,7 @@ mod materials_test {
         let eyev = Tup::vector(0, 0, -1);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 0, -10), Color::new(1, 1, 1));
-        let result = m.lighting(light, position, eyev, normalv, false);
+        let result = m.lighting(Mat4::default(), light, position, eyev, normalv, false);
         let sum_of_lights = m.ambient() + m.diffuse() + m.specular();
         assert_eq!(
             Color::new(sum_of_lights, sum_of_lights, sum_of_lights),
@@ -174,7 +185,7 @@ mod materials_test {
         let eyev = Tup::vector(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 0, -10), Color::new(1, 1, 1));
-        let result = m.lighting(light, position, eyev, normalv, false);
+        let result = m.lighting(Mat4::default(), light, position, eyev, normalv, false);
         let sum_of_lights = m.ambient() + m.diffuse() + (0.0 * m.specular());
         assert_eq!(
             Color::new(sum_of_lights, sum_of_lights, sum_of_lights),
@@ -189,7 +200,7 @@ mod materials_test {
         let eyev = Tup::vector(0, 0, -1);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 10, -10), Color::new(1, 1, 1));
-        let result = m.lighting(light, position, eyev, normalv, false);
+        let result = m.lighting(Mat4::default(), light, position, eyev, normalv, false);
         let sum_of_lights =
             m.ambient() + (2.0_f64.sqrt() / 2.0 * m.diffuse()) + (0.0 * m.specular());
         assert_eq!(
@@ -205,7 +216,7 @@ mod materials_test {
         let eyev = Tup::vector(0.0, -2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 10, -10), Color::new(1, 1, 1));
-        let result = m.lighting(light, position, eyev, normalv, false);
+        let result = m.lighting(Mat4::default(), light, position, eyev, normalv, false);
         let sum_of_lights = m.ambient() + (2.0_f64.sqrt() / 2.0 * m.diffuse()) + m.specular();
         assert_eq!(
             Color::new(sum_of_lights, sum_of_lights, sum_of_lights),
@@ -220,7 +231,7 @@ mod materials_test {
         let eyev = Tup::vector(0, 0, 1);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 0, 10), Color::new(1, 1, 1));
-        let result = m.lighting(light, position, eyev, normalv, false);
+        let result = m.lighting(Mat4::default(), light, position, eyev, normalv, false);
         let sum_of_lights = m.ambient() + (0.0 * m.diffuse()) + (0.0 * m.specular());
         assert_eq!(
             Color::new(sum_of_lights, sum_of_lights, sum_of_lights),
@@ -236,7 +247,35 @@ mod materials_test {
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 0, -10), Color::new(1, 1, 1));
         let in_shadow = true;
-        let result = m.lighting(light, position, eyev, normalv, in_shadow);
+        let result = m.lighting(Mat4::default(), light, position, eyev, normalv, in_shadow);
         assert_eq!(Color::new(m.ambient(), m.ambient(), m.ambient()), result);
     }
+
+    #[test]
+    fn lighting_a_material_with_a_pattern() {
+        let m = Material::default()
+            .with_pattern(Pattern::stripe_pattern(color::WHITE, color::BLACK))
+            .with_ambient(1.0)
+            .with_diffuse(0.0)
+            .with_specular(0.0);
+        let eyev = Tup::vector(0, 0, -1);
+        let normalv = Tup::vector(0, 0, -1);
+        let light = Light::point_light(Tup::point(0, 0, -10), color::WHITE);
+        let in_shadow = false;
+        let c1 = m.lighting(Mat4::default(),
+                            light,
+                            Tup::point(0.9, 0.0, 0.0),
+                            eyev,
+                            normalv,
+                            in_shadow);
+        let c2 = m.lighting(Mat4::default(),
+                            light,
+                            Tup::point(1.1, 0.0, 0.0),
+                            eyev,
+                            normalv,
+                            in_shadow);
+        assert_eq!(color::WHITE, c1);
+        assert_eq!(color::BLACK, c2)
+    }
+    
 }
