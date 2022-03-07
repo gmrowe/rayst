@@ -7,6 +7,7 @@ mod materials;
 mod math_helpers;
 mod matrix;
 mod rays;
+mod patterns;
 mod planes;
 mod shapes;
 mod spheres;
@@ -15,19 +16,19 @@ mod test_helpers;
 mod tup;
 mod world;
 
-use camera::Camera;
-use canvas::Canvas;
-use color::Color;
-use planes::Plane;
+use crate::camera::Camera;
+use crate::canvas::Canvas;
+use crate::color::Color;
+use crate::color::consts as col;
+use crate::planes::Plane;
+use crate::lights::Light;
+use crate::materials::Material;
+use crate::tup::Tup;
+use crate::patterns::Pattern;
+use crate::spheres::Sphere;
+use crate::world::World;
 use std::fs;
 use std::f64::consts;
-use lights::Light;
-use materials::Material;
-use tup::Tup;
-use spheres::Sphere;
-use world::World;
-use color::consts as col;
-
 
 fn background_material() -> Material {
     Material::default()
@@ -36,8 +37,8 @@ fn background_material() -> Material {
 }
 
 fn camera() -> Camera {
-    const CANVAS_WIDTH: usize = 1800;
-    const CANVAS_HEIGHT: usize = 900;
+    const CANVAS_WIDTH: usize = 1200;
+    const CANVAS_HEIGHT: usize = 600;
     const CAMERA_FIELD_OF_VIEW: f64 = consts::PI / 3.0;
     let from = Tup::point(0.0, 1.5, -5.0);
     let to = Tup::point(0.0, 1.0, 0.0);
@@ -54,10 +55,12 @@ fn middle_sphere() -> Sphere {
     let color = Color::from_hex(0x8C11D9);
     let diffuse = 0.7;
     let specular = 0.3;
+    let pattern = Pattern::stripe_pattern(col::WHITE, col::BLUE);
     let material = Material::default()
         .with_color(color)
         .with_diffuse(diffuse)
-        .with_specular(specular);
+        .with_specular(specular)
+        .with_pattern(pattern);
 
     Sphere::default()
         .with_transform(translation)
@@ -107,12 +110,14 @@ fn light_source() -> Light {
 fn plane_floor()-> Plane {
     const FLOOR_SPECULAR: f64 = 0.3;
     const FLOOR_SHININESS: f64 = 200.0;
-    let floor_color = col::GRAY;
-    
+    let transform = transforms::scaling(4, 4, 4) * transforms::rotation_y(consts::PI/4.0);
+    let pattern = Pattern::gradient_pattern(col::RED, col::GREEN)
+        .with_transform(transform);
+        
     let material = Material::default()
         .with_specular(FLOOR_SPECULAR)
         .with_shininess(FLOOR_SHININESS)
-        .with_color(floor_color);
+        .with_pattern(pattern);
     
     Plane::default()
         .with_material(material)
@@ -156,10 +161,11 @@ fn right_plane_wall() -> Plane {
     let rot_y = transforms::rotation_y(consts::PI/4.0);
     let rot_x = transforms::rotation_x(consts::PI/2.0);
     let right_wall_transform = translation * rot_y * rot_x;
+    let pattern = Pattern::ring_pattern(col::CYAN, col::MAGENTA);
 
     Plane::default()
         .with_transform(right_wall_transform)
-        .with_material(background_material().with_color(plane_wall_color()))
+        .with_material(background_material().with_pattern(pattern))
 }
 
 
