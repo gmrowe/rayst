@@ -30,6 +30,13 @@ impl Pattern {
         }
     }
 
+    pub fn checkers_pattern(color_a: Color, color_b: Color) -> Self {
+        Self {
+            pattern: Patterns::Checker(CheckersPattern::new(color_a, color_b)),
+            ..Self::default()
+        }
+    }
+
     pub fn with_transform(self, transform: Mat4) -> Self {
         Self { transform, ..self }
     }
@@ -145,7 +152,14 @@ impl CheckersPattern {
     }
 
     fn pattern_at(&self, point: Tup) -> Color {
-        crate::color::consts::RED
+        let lattice_x = point.x.floor().abs() as u64;
+        let lattice_y = point.y.floor().abs() as u64;
+        let lattice_z = point.z.floor().abs() as u64;
+        if (lattice_x + lattice_y + lattice_z) % 2 == 0 {
+            self.color_a
+        } else {
+            self.color_b
+        }
     }
 }
 
@@ -155,6 +169,7 @@ enum Patterns {
     Gradient(GradientPattern),
     Default(DefaultPattern),
     Ring(RingPattern),
+    Checker(CheckersPattern),
 }
 
 impl Patterns {
@@ -164,6 +179,7 @@ impl Patterns {
             Patterns::Gradient(p) => p.pattern_at(pattern_point),
             Patterns::Default(p) => p.pattern_at(pattern_point),
             Patterns::Ring(p) => p.pattern_at(pattern_point),
+            Patterns::Checker(p) => p.pattern_at(pattern_point),
         }
     }
 }
@@ -334,4 +350,6 @@ mod patterns_test {
         assert_eq!(color::WHITE, p.pattern_at(Tup::point(0.0, 0.0, 0.99)));
         assert_eq!(color::BLACK, p.pattern_at(Tup::point(0.0, 0.0, 1.01)));
     }
+
+    
 }
