@@ -55,13 +55,11 @@ fn middle_sphere() -> Sphere {
     let color = Color::from_hex(0x8C11D9);
     let diffuse = 0.7;
     let specular = 0.3;
-    let pattern = Pattern::stripe_pattern(col::WHITE, col::BLUE);
     let material = Material::default()
         .with_color(color)
         .with_diffuse(diffuse)
-        .with_specular(specular)
-        .with_pattern(pattern);
-
+        .with_specular(specular);
+       
     Sphere::default()
         .with_transform(translation)
         .with_material(material)
@@ -150,10 +148,12 @@ fn left_plane_wall() -> Plane {
     let rot_y = transforms::rotation_y(-consts::PI/4.0);
     let rot_x = transforms::rotation_x(consts::PI/2.0);
     let left_wall_transform = translation * rot_y * rot_x;
+    let pattern = Pattern::checkers_pattern(col::BLACK, col::GREEN)
+        .with_transform(transforms::scaling(0.4, 0.1, 1.0));
 
     Plane::default()
         .with_transform(left_wall_transform)
-        .with_material(background_material().with_color(plane_wall_color()))
+        .with_material(background_material().with_pattern(pattern))
 }
 
 fn right_plane_wall() -> Plane {
@@ -161,7 +161,8 @@ fn right_plane_wall() -> Plane {
     let rot_y = transforms::rotation_y(consts::PI/4.0);
     let rot_x = transforms::rotation_x(consts::PI/2.0);
     let right_wall_transform = translation * rot_y * rot_x;
-    let pattern = Pattern::ring_pattern(col::CYAN, col::MAGENTA);
+    let pattern = Pattern::ring_pattern(col::CYAN, col::MAGENTA)
+        .with_transform(transforms::scaling(0.1, 0.1, 0.1));
 
     Plane::default()
         .with_transform(right_wall_transform)
