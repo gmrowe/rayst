@@ -94,7 +94,7 @@ impl Camera {
         let mut image = Canvas::new(self.hsize, self.vsize);
         for (row, col, pixel) in image.enumerate_pixels_mut() {
             let ray = self.ray_for_pixel(col, row);
-            let color = world.color_at(ray);
+            let color = world.color_at(ray, World::MAX_BOUNCES);
             *pixel = color;
             
             if self.log_progress {
