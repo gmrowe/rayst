@@ -22,6 +22,7 @@ pub struct Material {
     // surface
     specular: f64,
     shininess: f64,
+    reflective: f64,
     pattern: Option<Pattern>,
 }
 
@@ -50,6 +51,10 @@ impl Material {
         Self { pattern: Some(pattern), ..self }
     }
 
+    pub fn with_reflective(self, reflective: f64) -> Self {
+        Self { reflective, ..self }
+    }
+     
     pub fn ambient(&self) -> f64 {
         self.ambient
     }
@@ -68,6 +73,10 @@ impl Material {
 
     pub fn shininess(&self) -> f64 {
         self.shininess
+    }
+
+    pub fn reflective(&self) -> f64 {
+        self.reflective
     }
 
     fn calc_diffuse(&self, effective_color: Color, light_dot_normal: f64) -> Color {
@@ -123,6 +132,7 @@ impl Default for Material {
             diffuse: 0.9,
             specular: 0.9,
             shininess: 200.0,
+            reflective: 0.0,
             pattern: None,
         }
     }
@@ -277,5 +287,10 @@ mod materials_test {
         assert_eq!(color::WHITE, c1);
         assert_eq!(color::BLACK, c2)
     }
-    
+
+    #[test]
+    fn material_has_a_default_reflectivity() {
+        let m = Material::default();
+        assert_eq!(0.0, m.reflective());
+    }
 }
