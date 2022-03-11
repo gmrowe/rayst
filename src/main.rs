@@ -37,8 +37,8 @@ fn background_material() -> Material {
 }
 
 fn camera() -> Camera {
-    const CANVAS_WIDTH: usize = 1200;
-    const CANVAS_HEIGHT: usize = 600;
+    const CANVAS_WIDTH: usize = 400;
+    const CANVAS_HEIGHT: usize = 200;
     const CAMERA_FIELD_OF_VIEW: f64 = consts::PI / 3.0;
     let from = Tup::point(0.0, 1.5, -5.0);
     let to = Tup::point(0.0, 1.0, 0.0);
@@ -108,14 +108,11 @@ fn light_source() -> Light {
 fn plane_floor()-> Plane {
     const FLOOR_SPECULAR: f64 = 0.3;
     const FLOOR_SHININESS: f64 = 200.0;
-    let transform = transforms::scaling(4, 4, 4) * transforms::rotation_y(consts::PI/4.0);
-    let pattern = Pattern::gradient_pattern(col::RED, col::GREEN)
-        .with_transform(transform);
         
     let material = Material::default()
         .with_specular(FLOOR_SPECULAR)
         .with_shininess(FLOOR_SHININESS)
-        .with_pattern(pattern);
+        .with_reflective(0.8);
     
     Plane::default()
         .with_material(material)
