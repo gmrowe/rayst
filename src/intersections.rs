@@ -13,6 +13,7 @@ pub struct Computations {
     normalv: Tup,
     inside: bool,
     over_point: Tup,
+    reflectv: Tup,
 }
 
 impl Computations {
@@ -29,6 +30,7 @@ impl Computations {
             normalv,
             inside,
             over_point: point + (normalv * EPSILON),
+            reflectv: ray.direction().reflect(&normalv)
         }
     }
     
@@ -58,6 +60,10 @@ impl Computations {
 
     pub fn over_point(&self) -> Tup {
         self.over_point
+    }
+
+    pub fn reflectv(&self) -> Tup {
+        self.reflectv
     }
 }
 
@@ -159,6 +165,7 @@ mod intersections_test {
     use super::*;
     use crate::test_helpers::assert_nearly_eq;
     use crate::spheres::Sphere;
+    use crate::planes::Plane;
     use crate::transforms::translation;
   
     #[test]
@@ -282,5 +289,16 @@ mod intersections_test {
         let i = Intersection::new(5, shape);
         let comps = i.prepare_computations(r);
         assert!(comps.point().z > comps.over_point().z);        
+    }
+
+    #[test]
+    fn the_refection_vector_should_be_precomputed() {
+        let shape = Plane::default();
+        let rad_2 = 2.0_f64.sqrt();
+        let rad_2_over_2 = rad_2 / 2.0;
+        let r = Ray::new(Tup::point(0, 1, -1), Tup::vector(0.0, -rad_2_over_2, rad_2_over_2));
+        let i = Intersection::new(rad_2, shape);
+        let comps = i.prepare_computations(r);
+        assert_eq!(comps.reflectv(), Tup::vector(0.0, rad_2_over_2, rad_2_over_2));        
     }
 }
