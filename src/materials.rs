@@ -23,6 +23,8 @@ pub struct Material {
     specular: f64,
     shininess: f64,
     reflective: f64,
+    transparency: f64,
+    refractive_index: f64,
     pattern: Option<Pattern>,
 }
 
@@ -54,7 +56,15 @@ impl Material {
     pub fn with_reflective(self, reflective: f64) -> Self {
         Self { reflective, ..self }
     }
-     
+
+    pub fn with_transparency(self, transparency: f64) -> Self {
+        Self { transparency, ..self }
+    }
+
+    pub fn with_refractive_index(self, refractive_index: f64) -> Self {
+        Self { refractive_index, ..self }
+    }
+    
     pub fn ambient(&self) -> f64 {
         self.ambient
     }
@@ -78,6 +88,15 @@ impl Material {
     pub fn reflective(&self) -> f64 {
         self.reflective
     }
+
+    pub fn transparency(&self) -> f64 {
+        self.transparency
+    }
+
+    pub fn refractive_index(&self) -> f64 {
+        self.refractive_index
+    }
+
 
     fn calc_diffuse(&self, effective_color: Color, light_dot_normal: f64) -> Color {
         effective_color * self.diffuse() * light_dot_normal
@@ -103,11 +122,9 @@ impl Material {
         normalv: Tup,
         in_shadow: bool,
     ) -> Color {
-        let color = if let Some(p) = self.pattern {
-            p.color_at(object_transform, position)
-        } else {
-            self.color
-        };
+        let color = self.pattern
+            .map(|p| p.color_at(object_transform, position))
+            .unwrap_or(self.color);
         let effective_color = color * light.intensity();
         let lightv = (light.position() - position).normalize();
         let ambient = effective_color * self.ambient();
@@ -133,6 +150,8 @@ impl Default for Material {
             specular: 0.9,
             shininess: 200.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive_index: 1.0,
             pattern: None,
         }
     }
@@ -292,5 +311,29 @@ mod materials_test {
     fn material_has_a_default_reflectivity() {
         let m = Material::default();
         assert_eq!(0.0, m.reflective());
+    }
+
+    #[test]
+    fn material_has_a_default_transparancy() {
+        let m = Material::default();
+        assert_eq!(0.0, m.transparency());
+    }
+
+    #[test]
+    fn material_transparancy_is_settable() {
+        let m = Material::default().with_transparency(0.5);
+        assert_eq!(0.5, m.transparency());
+    }
+
+    #[test]
+    fn material_has_a_default_refractive_index() {
+        let m = Material::default();
+        assert_eq!(1.0, m.refractive_index());
+    }
+
+    #[test]
+    fn material_refractive_index_is_settable() {
+        let m = Material::default().with_refractive_index(1.8);
+        assert_eq!(1.8, m.refractive_index());
     }
 }
