@@ -3,8 +3,9 @@ use crate::intersections::Intersections;
 use crate::materials::Material;
 use crate::rays::Ray;
 use crate::tup::Tup;
+use std::fmt::Debug;
 
-pub trait Shape: ShapeClone {
+pub trait Shape: ShapeClone + Debug {
     fn transform(&self) -> Mat4;
 
     fn set_transform(&mut self, transform: Mat4);
@@ -62,7 +63,7 @@ mod shape_tests {
 
     static mut SAVED_RAY: Option<Ray> = None;
 
-    #[derive(Clone)]
+    #[derive(Clone, Debug)]
     struct TestShape {
         transform: Option<Mat4>,
         material: Option<Material>,
