@@ -20,6 +20,13 @@ fn get_id() -> usize {
 }
 
 impl Sphere {
+    pub fn glass_sphere() -> Self {
+        let glass_material = Material::default()
+            .with_transparency(1.0)
+            .with_refractive_index(1.5);
+        Self::default().with_material(glass_material)      
+    }
+    
     pub fn with_material(self, material: Material) -> Self {
         Self {
             material,
@@ -33,6 +40,7 @@ impl Sphere {
             ..self
         }
     }
+
 }
 
 impl Default for Sphere {
@@ -316,5 +324,18 @@ mod spheres_test {
         let m = Material::default().with_ambient(1.0);
         let s = Sphere::default().with_material(m);
         assert_eq!(m, s.material());
+    }
+
+    #[test]
+    fn a_glass_sphere_has_a_transparency_of_1() {
+        let s = Sphere::glass_sphere();
+        assert_eq!(1.0, s.material().transparency());
+    }
+
+    #[test]
+    fn a_glass_sphere_has_a_refractive_index_of_1_5() {
+        let s = Sphere::glass_sphere();
+
+        assert_eq!(1.5, s.material().refractive_index());
     }
 }
