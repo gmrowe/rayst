@@ -77,9 +77,13 @@ impl World {
     }
 
     pub fn color_at(&self, ray: Ray, remaining_bounces: usize) -> Color {
-        self.intersect(ray)
+        let intersections = self.intersect(ray);
+        intersections
             .hit()
-            .map(|i| self.shade_hit(&i.clone().prepare_computations(ray), remaining_bounces))
+            .map(|i| self.shade_hit(
+                &i.prepare_computations(ray, &intersections),
+                remaining_bounces)
+            )
             .unwrap_or(col::BLACK)
     }
 
@@ -158,7 +162,7 @@ mod world_test {
         let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
         let shape = w[0].clone();
         let i = Intersection::from_boxed_shape(4, shape);
-        let comps = i.prepare_computations(r);
+        let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
         let c = w.shade_hit(&comps, World::MAX_BOUNCES);
         assert_eq!(Color::new(0.38066, 0.47583, 0.2855), c);
     }
@@ -172,7 +176,7 @@ mod world_test {
         let r = Ray::new(Tup::point(0, 0, 0), Tup::vector(0, 0, 1));
         let shape = w[1].clone();
         let i = Intersection::from_boxed_shape(0.5, shape);
-        let comps = i.prepare_computations(r);
+        let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
         let c = w.shade_hit(&comps, World::MAX_BOUNCES);
         assert_eq!(Color::new(0.90498, 0.90498, 0.90498), c);
     }
@@ -246,7 +250,7 @@ mod world_test {
             .with_object(s2);
         let ray = Ray::new(Tup::point(0, 0, 5), Tup::vector(0, 0, 1));
         let i = Intersection::new(4, s2);
-        let comps = i.prepare_computations(ray);
+        let comps = i.prepare_computations(ray, &Intersections::new(&[i.clone()]));
         let color = world.shade_hit(&comps, World::MAX_BOUNCES);
         assert_eq!(Color::new(0.1, 0.1, 0.1), color);
     }
@@ -259,7 +263,7 @@ mod world_test {
         let current_material = shape.material();
         shape.set_material(current_material.with_ambient(1.0));
         let i = Intersection::from_boxed_shape(1.0, shape);
-        let comps = i.prepare_computations(r);
+        let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
         let color = world.reflected_color(&comps, World::MAX_BOUNCES);
         assert_eq!(col::BLACK, color);
     }
@@ -275,7 +279,7 @@ mod world_test {
         let rad_2_over_2 = rad_2 / 2.0;
         let r = Ray::new(Tup::point(0, 0, -3), Tup::vector(0.0, -rad_2_over_2, rad_2_over_2));
         let i = Intersection::new(rad_2, shape);
-        let comps = i.prepare_computations(r);
+        let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
         let color = world.reflected_color(&comps, World::MAX_BOUNCES);
         assert_eq!(Color::new(0.19033, 0.23791, 0.14274), color);
     }
@@ -291,7 +295,7 @@ mod world_test {
         let rad_2_over_2 = rad_2 / 2.0;
         let r = Ray::new(Tup::point(0, 0, -3), Tup::vector(0.0, -rad_2_over_2, rad_2_over_2));
         let i = Intersection::new(rad_2, shape);
-        let comps = i.prepare_computations(r);
+        let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
         let color = world.shade_hit(&comps, World::MAX_BOUNCES);
         assert_eq!(Color::new(0.87676, 0.92435, 0.82918), color);
     }
@@ -323,8 +327,8 @@ mod world_test {
         let rad_2_over_2 = rad_2 / 2.0;
         let r = Ray::new(Tup::point(0, 0, -3), Tup::vector(0.0, -rad_2_over_2, rad_2_over_2));
         let i = Intersection::new(rad_2, shape);
-        let comps = i.prepare_computations(r);
+        let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
         let color = world.reflected_color(&comps, 0);
         assert_eq!(col::BLACK, color);
     }    
-}
+} 
