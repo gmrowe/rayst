@@ -13,6 +13,7 @@ pub struct Computations {
     normalv: Tup,
     inside: bool,
     over_point: Tup,
+    under_point: Tup,
     reflectv: Tup,
     n1: f64,
     n2: f64,
@@ -33,6 +34,7 @@ impl Computations {
             normalv,
             inside,
             over_point: point + (normalv * EPSILON),
+            under_point: point - (normalv * EPSILON),
             reflectv: ray.direction().reflect(&normalv),
             n1,
             n2,
@@ -40,10 +42,7 @@ impl Computations {
     }
 
     fn calc_n1_n2(intersection: &Intersection, xs: &Intersections) -> (f64, f64) {
-        let likely_eq = |o1: &Object, o2: &Object| {
-            println!("{:?}", o1);
-            format!("{:?}", o1) == format!("{:?}", o2)
-        };
+        let likely_eq = |o1: &Object, o2: &Object| format!("{:?}", o1) == format!("{:?}", o2);
         let mut containers = Vec::new();
         let mut n1 = 1.0;
         let mut n2 = 1.0;
@@ -114,6 +113,10 @@ impl Computations {
 
     pub fn n2(&self) -> f64 {
         self.n2
+    }
+
+    pub fn under_point(&self) -> Tup {
+        self.under_point
     }
 }
 
@@ -393,5 +396,17 @@ mod intersections_test {
         assert_n1_and_n2_of_at_intersection(3, 2.5, 2.5);
         assert_n1_and_n2_of_at_intersection(4, 2.5, 1.5);
         assert_n1_and_n2_of_at_intersection(5, 1.5, 1.0);
+    }
+
+    #[test]
+    fn under_point_is_offset_just_below_surface() {
+        let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
+        let sphere = Sphere::glass_sphere().with_transform(transforms::translation(0, 0, 1));
+        let i = Intersection::new(5, sphere);
+        let xs = Intersections::new(&[i.clone()]);
+        let comps = i.prepare_computations(r, &xs);
+        let under_point = comps.under_point();
+        assert!(under_point.z > EPSILON/2.0);
+        assert!(comps.point().z < under_point.z)
     }
 }
