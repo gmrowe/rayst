@@ -73,10 +73,22 @@ pub fn view_transform(from: Tup, to: Tup, up: Tup) -> Mat4 {
     let leftv = forwardv.cross(&up.normalize());
     let upv = leftv.cross(&forwardv);
     let orientation = Mat4::from_data(&[
-        leftv.x,     leftv.y,     leftv.z,     0.0,
-        upv.x,       upv.y,       upv.z,       0.0,
-        -forwardv.x, -forwardv.y, -forwardv.z, 0.0,
-        0.0,         0.0,         0.0,         1.0
+        leftv.x,
+        leftv.y,
+        leftv.z,
+        0.0,
+        upv.x,
+        upv.y,
+        upv.z,
+        0.0,
+        -forwardv.x,
+        -forwardv.y,
+        -forwardv.z,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
     ]);
     orientation * translation(-from.x, -from.y, -from.z)
 }
@@ -86,7 +98,7 @@ mod tramsforms_test {
     use super::*;
     use crate::tup::Tup;
     use std::f64::consts;
-    
+
     #[test]
     fn multiplying_by_translation_matrix_moves_point() {
         let transform: Mat4 = translation(5.0, -3.0, 2.0);
@@ -175,7 +187,7 @@ mod tramsforms_test {
         let expected = Tup::point(0.0, 2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0);
         assert_eq!(expected, half_quarter * p);
     }
-    
+
     #[test]
     fn mutriplying_by_rotation_x_can_rotate_a_point_around_the_x_axis_one_quarter() {
         let quarter: Mat4 = rotation_x(consts::PI / 2.0);
@@ -276,15 +288,15 @@ mod tramsforms_test {
     #[test]
     fn individual_transformations_are_applied_in_sequence() {
         let p = Tup::point(1.0, 0.0, 1.0);
-        
+
         let rot = rotation_x(consts::PI / 2.0);
         let p2 = rot * p;
         assert_eq!(Tup::point(1.0, -1.0, 0.0), p2);
-        
+
         let scale = scaling(5.0, 5.0, 5.0);
         let p3 = scale * p2;
         assert_eq!(Tup::point(5.0, -5.0, 0.0), p3);
-        
+
         let trans = translation(10.0, 5.0, 7.0);
         let p4 = trans * p3;
         assert_eq!(Tup::point(15.0, 0.0, 7.0), p4);
@@ -292,7 +304,7 @@ mod tramsforms_test {
 
     #[test]
     fn chained_transformations_are_applied_in_reverse_order() {
-        let p = Tup::point(1.0, 0.0, 1.0);        
+        let p = Tup::point(1.0, 0.0, 1.0);
         let rot = rotation_x(consts::PI / 2.0);
         let scale = scaling(5.0, 5.0, 5.0);
         let trans = translation(10.0, 5.0, 7.0);
@@ -335,10 +347,8 @@ mod tramsforms_test {
         let up = Tup::vector(1, 1, 0);
         let t = view_transform(from, to, up);
         let expected = Mat4::from_data(&vec![
-            -0.50709, 0.50709, 0.67612, -2.36643,
-            0.76772, 0.60609, 0.12122, -2.82843,
-            -0.35857, 0.59761, -0.71714, 0.00000,
-            0.00000, 0.00000, 0.00000, 1.00000
+            -0.50709, 0.50709, 0.67612, -2.36643, 0.76772, 0.60609, 0.12122, -2.82843, -0.35857,
+            0.59761, -0.71714, 0.00000, 0.00000, 0.00000, 0.00000, 1.00000,
         ]);
         assert_eq!(expected, t);
     }

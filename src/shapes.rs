@@ -1,6 +1,6 @@
-use crate::matrix::Mat4;
 use crate::intersections::Intersections;
 use crate::materials::Material;
+use crate::matrix::Mat4;
 use crate::rays::Ray;
 use crate::tup::Tup;
 use std::fmt::Debug;
@@ -13,12 +13,12 @@ pub trait Shape: ShapeClone + Debug {
     fn material(&self) -> Material;
 
     fn set_material(&mut self, material: Material);
-    
+
     fn intersect(&self, ray: &Ray) -> Intersections {
         let local_ray = ray.transform(&self.transform().inverse());
         self.local_intersect(local_ray)
     }
-    
+
     fn local_intersect(&self, local_ray: Ray) -> Intersections;
 
     fn normal_at(&self, point: Tup) -> Tup {
@@ -27,8 +27,7 @@ pub trait Shape: ShapeClone + Debug {
         let local_normal = self.local_normal_at(local_point);
         let world_normal = inverse_xform.transpose() * local_normal;
         // Hack to ensure that w = 1.0 - See pg. 82
-        let world_normal_vec =
-            Tup::vector(world_normal.x, world_normal.y, world_normal.z);
+        let world_normal_vec = Tup::vector(world_normal.x, world_normal.y, world_normal.z);
         world_normal_vec.normalize()
     }
 
@@ -38,7 +37,6 @@ pub trait Shape: ShapeClone + Debug {
 pub trait ShapeClone {
     fn clone_box(&self) -> Box<dyn Shape>;
 }
-
 
 impl<T> ShapeClone for T
 where
@@ -84,7 +82,7 @@ mod shape_tests {
         }
 
         fn set_transform(&mut self, transform: Mat4) {
-            self.transform  = Some(transform);
+            self.transform = Some(transform);
         }
 
         fn material(&self) -> Material {
@@ -106,7 +104,7 @@ mod shape_tests {
             Tup::vector(point.x, point.y, point.z)
         }
     }
-    
+
     #[test]
     fn shape_should_have_a_default_transformation() {
         let shape = TestShape::default();
@@ -142,8 +140,14 @@ mod shape_tests {
         shape.set_transform(transforms::scaling(2, 2, 2));
         let _xs = shape.intersect(&ray);
         unsafe {
-            assert_eq!(Tup::point(0.0, 0.0, -2.5), SAVED_RAY.expect("No saved ray").origin());
-            assert_eq!(Tup::vector(0.0, 0.0, 0.5), SAVED_RAY.expect("No saved ray").direction());
+            assert_eq!(
+                Tup::point(0.0, 0.0, -2.5),
+                SAVED_RAY.expect("No saved ray").origin()
+            );
+            assert_eq!(
+                Tup::vector(0.0, 0.0, 0.5),
+                SAVED_RAY.expect("No saved ray").direction()
+            );
         }
     }
 
@@ -154,8 +158,14 @@ mod shape_tests {
         shape.set_transform(transforms::translation(5, 0, 0));
         let _xs = shape.intersect(&ray);
         unsafe {
-            assert_eq!(Tup::point(-5, 0, -5), SAVED_RAY.expect("No saved ray").origin());
-            assert_eq!(Tup::vector(0.0, 0.0, 1.0), SAVED_RAY.expect("No saved ray").direction());
+            assert_eq!(
+                Tup::point(-5, 0, -5),
+                SAVED_RAY.expect("No saved ray").origin()
+            );
+            assert_eq!(
+                Tup::vector(0.0, 0.0, 1.0),
+                SAVED_RAY.expect("No saved ray").direction()
+            );
         }
     }
 
@@ -170,9 +180,10 @@ mod shape_tests {
     #[test]
     fn the_normal_on_a_tranformed_shape_can_be_calculates() {
         let mut shape = TestShape::default();
-        let transform = transforms::scaling(1.0, 0.5, 1.0) * transforms::rotation_z(consts::PI/5.0);
+        let transform =
+            transforms::scaling(1.0, 0.5, 1.0) * transforms::rotation_z(consts::PI / 5.0);
         shape.set_transform(transform);
-        let n = shape.normal_at(Tup::point(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0, ));
+        let n = shape.normal_at(Tup::point(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0));
         assert_eq!(Tup::vector(0.0, 0.97014, -0.24254), n);
-    } 
+    }
 }

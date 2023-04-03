@@ -3,16 +3,13 @@ use crate::tup::Tup;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Ray {
-    origin: Tup, // point
+    origin: Tup,    // point
     direction: Tup, // vector
 }
 
 impl Ray {
     pub fn new(origin: Tup, direction: Tup) -> Self {
-        Self {
-            origin,
-            direction,
-        }
+        Self { origin, direction }
     }
 
     pub fn origin(&self) -> Tup {
@@ -28,7 +25,7 @@ impl Ray {
     }
 
     pub fn transform(&self, mat: &Mat4) -> Self {
-         Self::new(*mat * self.origin(), *mat * self.direction())
+        Self::new(*mat * self.origin(), *mat * self.direction())
     }
 }
 
@@ -92,5 +89,5 @@ mod rays_test {
         let m = transforms::scaling(2, 3, 4);
         let r2 = ray.transform(&m);
         assert_eq!(Tup::vector(0, 3, 0), r2.direction());
-    }  
+    }
 }

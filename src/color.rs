@@ -3,42 +3,78 @@ use std::ops::{Add, Mul, Sub};
 
 pub mod consts {
     use super::Color;
-    
-    pub const BLACK: Color =
-        Color { red: 0.0, green: 0.0, blue: 0.0 };
-    
-    pub const WHITE: Color =
-        Color { red: 1.0, green: 1.0, blue: 1.0 };
-    
-    pub const RED: Color =
-        Color { red: 1.0, green: 0.0, blue: 0.0 };
-    
-    pub const GREEN: Color =
-        Color { red: 0.0, green: 1.0, blue: 0.0 };
-    
-    pub const BLUE: Color =
-        Color { red: 0.0, green: 0.0, blue: 1.0 };
 
-    pub const MAGENTA: Color =
-        Color { red: 1.0, green: 0.0, blue: 1.0 };
+    pub const BLACK: Color = Color {
+        red: 0.0,
+        green: 0.0,
+        blue: 0.0,
+    };
 
-    pub const CYAN: Color =
-        Color { red: 0.0, green: 1.0, blue: 1.0 };
+    pub const WHITE: Color = Color {
+        red: 1.0,
+        green: 1.0,
+        blue: 1.0,
+    };
 
-    pub const YELLOW: Color =
-        Color { red: 1.0, green: 1.0, blue: 0.0 };
-    
-    pub const NAVY: Color =
-        Color { red: 0.0, green: 0.0, blue: 0.5 };
+    pub const RED: Color = Color {
+        red: 1.0,
+        green: 0.0,
+        blue: 0.0,
+    };
 
-    pub const TEAL: Color =
-        Color { red: 0.0, green: 0.5, blue: 0.5 };
+    pub const GREEN: Color = Color {
+        red: 0.0,
+        green: 1.0,
+        blue: 0.0,
+    };
 
-    pub const OLIVE: Color =
-        Color { red: 0.5, green: 0.5, blue: 0.0 };
+    pub const BLUE: Color = Color {
+        red: 0.0,
+        green: 0.0,
+        blue: 1.0,
+    };
 
-    pub const GRAY: Color =
-        Color { red: 0.5, green: 0.5, blue: 0.5 };
+    pub const MAGENTA: Color = Color {
+        red: 1.0,
+        green: 0.0,
+        blue: 1.0,
+    };
+
+    pub const CYAN: Color = Color {
+        red: 0.0,
+        green: 1.0,
+        blue: 1.0,
+    };
+
+    pub const YELLOW: Color = Color {
+        red: 1.0,
+        green: 1.0,
+        blue: 0.0,
+    };
+
+    pub const NAVY: Color = Color {
+        red: 0.0,
+        green: 0.0,
+        blue: 0.5,
+    };
+
+    pub const TEAL: Color = Color {
+        red: 0.0,
+        green: 0.5,
+        blue: 0.5,
+    };
+
+    pub const OLIVE: Color = Color {
+        red: 0.5,
+        green: 0.5,
+        blue: 0.0,
+    };
+
+    pub const GRAY: Color = Color {
+        red: 0.5,
+        green: 0.5,
+        blue: 0.5,
+    };
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -50,7 +86,7 @@ pub struct Color {
 
 impl Color {
     const MAX_SUBPIXEL_VALUE: f64 = 255.0;
-        
+
     pub fn new<I: Into<f64>>(r: I, g: I, b: I) -> Self {
         Self {
             red: r.into(),
@@ -84,10 +120,13 @@ impl Color {
     }
 
     pub fn to_byte_triple(self) -> (u8, u8, u8) {
-        let normalize = |subpixel: f64| {
-            (subpixel.clamp(0.0, 1.0) * Self::MAX_SUBPIXEL_VALUE).round() as u8
-        };
-        (normalize(self.red()), normalize(self.green()), normalize(self.blue()))
+        let normalize =
+            |subpixel: f64| (subpixel.clamp(0.0, 1.0) * Self::MAX_SUBPIXEL_VALUE).round() as u8;
+        (
+            normalize(self.red()),
+            normalize(self.green()),
+            normalize(self.blue()),
+        )
     }
 }
 

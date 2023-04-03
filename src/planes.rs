@@ -1,7 +1,7 @@
 use crate::intersections::{Intersection, Intersections};
+use crate::materials::Material;
 use crate::math_helpers::EPSILON;
 use crate::matrix::Mat4;
-use crate::materials::Material;
 use crate::rays::Ray;
 use crate::shapes::Shape;
 use crate::tup::Tup;
@@ -14,17 +14,11 @@ pub struct Plane {
 
 impl Plane {
     pub fn with_material(self, material: Material) -> Self {
-        Self {
-            material,
-            ..self
-        }
+        Self { material, ..self }
     }
 
     pub fn with_transform(self, transform: Mat4) -> Self {
-        Self {
-            transform,
-            ..self
-        }
+        Self { transform, ..self }
     }
 }
 
@@ -44,7 +38,7 @@ impl Shape for Plane {
     fn set_material(&mut self, material: Material) {
         self.material = material;
     }
-    
+
     fn intersect(&self, ray: &Ray) -> Intersections {
         let local_ray = ray.transform(&self.transform().inverse());
         self.local_intersect(local_ray)
@@ -58,33 +52,30 @@ impl Shape for Plane {
             Intersections::new(&vec![Intersection::new(t, *self)])
         }
     }
-    
+
     fn normal_at(&self, point: Tup) -> Tup {
         let inverse_xform = self.transform().inverse();
         let local_point = inverse_xform * point;
         let local_normal = self.local_normal_at(local_point);
         let world_normal = inverse_xform.transpose() * local_normal;
         // Hack to ensure that w = 1.0 - See pg. 82
-        let world_normal_vec =
-            Tup::vector(world_normal.x, world_normal.y, world_normal.z);
+        let world_normal_vec = Tup::vector(world_normal.x, world_normal.y, world_normal.z);
         world_normal_vec.normalize()
     }
 
     fn local_normal_at(&self, _point: Tup) -> Tup {
         Tup::vector(0, 1, 0)
     }
-
 }
 
 impl Default for Plane {
-    fn default() -> Self{
+    fn default() -> Self {
         Self {
             transform: Mat4::default(),
             material: Material::default(),
         }
     }
 }
-
 
 #[cfg(test)]
 mod planes_test {

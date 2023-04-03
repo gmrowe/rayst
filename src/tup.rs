@@ -22,7 +22,7 @@ impl Tup {
             x: x.into(),
             y: y.into(),
             z: z.into(),
-            w: w.into()
+            w: w.into(),
         }
     }
 
@@ -30,7 +30,7 @@ impl Tup {
         let x: f64 = ix.into();
         let y: f64 = iy.into();
         let z: f64 = iz.into();
-        Self::new(x, y, z, 1.0) 
+        Self::new(x, y, z, 1.0)
     }
 
     pub fn vector<I: Into<f64>>(ix: I, iy: I, iz: I) -> Self {
@@ -395,7 +395,7 @@ mod tup_tests {
     #[test]
     fn reflecting_a_vector_across_a_slanted_surface() {
         let v = Tup::vector(0, -1, 0);
-        let x = 2.0_f64.sqrt() / 2.0; 
+        let x = 2.0_f64.sqrt() / 2.0;
         let normal = Tup::vector(x, x, 0.0); // 45 degree angle
         let r = v.reflect(&normal);
         assert_eq!(Tup::vector(1, 0, 0), r);

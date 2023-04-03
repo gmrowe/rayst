@@ -4,7 +4,7 @@ use crate::Tup;
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Light {
     position: Tup,
-    intensity: Color,    
+    intensity: Color,
 }
 
 impl Light {

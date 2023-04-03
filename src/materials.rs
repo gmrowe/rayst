@@ -50,7 +50,10 @@ impl Material {
     }
 
     pub fn with_pattern(self, pattern: Pattern) -> Self {
-        Self { pattern: Some(pattern), ..self }
+        Self {
+            pattern: Some(pattern),
+            ..self
+        }
     }
 
     pub fn with_reflective(self, reflective: f64) -> Self {
@@ -58,13 +61,19 @@ impl Material {
     }
 
     pub fn with_transparency(self, transparency: f64) -> Self {
-        Self { transparency, ..self }
+        Self {
+            transparency,
+            ..self
+        }
     }
 
     pub fn with_refractive_index(self, refractive_index: f64) -> Self {
-        Self { refractive_index, ..self }
+        Self {
+            refractive_index,
+            ..self
+        }
     }
-    
+
     pub fn ambient(&self) -> f64 {
         self.ambient
     }
@@ -97,7 +106,6 @@ impl Material {
         self.refractive_index
     }
 
-
     fn calc_diffuse(&self, effective_color: Color, light_dot_normal: f64) -> Color {
         effective_color * self.diffuse() * light_dot_normal
     }
@@ -122,7 +130,8 @@ impl Material {
         normalv: Tup,
         in_shadow: bool,
     ) -> Color {
-        let color = self.pattern
+        let color = self
+            .pattern
             .map(|p| p.color_at(object_transform, position))
             .unwrap_or(self.color);
         let effective_color = color * light.intensity();
@@ -161,7 +170,7 @@ impl Default for Material {
 mod materials_test {
     use super::*;
     use crate::color::consts as color;
-     
+
     #[test]
     fn default_material_has_a_color() {
         let m = Material::default();
@@ -291,18 +300,22 @@ mod materials_test {
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 0, -10), color::WHITE);
         let in_shadow = false;
-        let c1 = m.lighting(Mat4::default(),
-                            light,
-                            Tup::point(0.9, 0.0, 0.0),
-                            eyev,
-                            normalv,
-                            in_shadow);
-        let c2 = m.lighting(Mat4::default(),
-                            light,
-                            Tup::point(1.1, 0.0, 0.0),
-                            eyev,
-                            normalv,
-                            in_shadow);
+        let c1 = m.lighting(
+            Mat4::default(),
+            light,
+            Tup::point(0.9, 0.0, 0.0),
+            eyev,
+            normalv,
+            in_shadow,
+        );
+        let c2 = m.lighting(
+            Mat4::default(),
+            light,
+            Tup::point(1.1, 0.0, 0.0),
+            eyev,
+            normalv,
+            in_shadow,
+        );
         assert_eq!(color::WHITE, c1);
         assert_eq!(color::BLACK, c2)
     }

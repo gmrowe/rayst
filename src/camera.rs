@@ -1,8 +1,8 @@
+use crate::canvas::Canvas;
 use crate::matrix::Mat4;
 use crate::rays::Ray;
 use crate::tup::Tup;
 use crate::world::World;
-use crate::canvas::Canvas;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Camera {
@@ -25,10 +25,7 @@ impl Camera {
     }
 
     pub fn with_transform(self, transform: Mat4) -> Self {
-        Self {
-            transform,
-            ..self
-        }
+        Self { transform, ..self }
     }
 
     pub fn with_progress_logging(self) -> Self {
@@ -87,7 +84,7 @@ impl Camera {
         let pixel_count = (self.hsize * self.vsize) as f64;
         let pixel_number = (row * self.hsize + col) as f64;
         let percent_complete = pixel_number / pixel_count * 100.0;
-        print!("{:.0}% complete\r", percent_complete); 
+        print!("{:.0}% complete\r", percent_complete);
     }
 
     pub fn render(&self, world: &World) -> Canvas {
@@ -96,7 +93,7 @@ impl Camera {
             let ray = self.ray_for_pixel(col, row);
             let color = world.color_at(ray, World::MAX_BOUNCES);
             *pixel = color;
-            
+
             if self.log_progress {
                 self.output_progress(row, col);
             }
@@ -108,11 +105,11 @@ impl Camera {
 #[cfg(test)]
 mod camera_test {
     use super::*;
-    use std::f64::consts;
-    use crate::transforms;
     use crate::color::Color;
     use crate::test_helpers::{assert_nearly_eq, default_test_world};
-    
+    use crate::transforms;
+    use std::f64::consts;
+
     #[test]
     fn a_camera_stores_its_hsize() {
         let hsize = 160;
@@ -201,7 +198,10 @@ mod camera_test {
         let r = camera.ray_for_pixel(100, 50);
         assert_eq!(Tup::point(0, 2, -5), r.origin());
         let sqrt_2_over_2 = 2.0_f64.sqrt() / 2.0;
-        assert_eq!(Tup::vector(sqrt_2_over_2, 0.0, -sqrt_2_over_2), r.direction());
+        assert_eq!(
+            Tup::vector(sqrt_2_over_2, 0.0, -sqrt_2_over_2),
+            r.direction()
+        );
     }
 
     #[test]
@@ -211,7 +211,7 @@ mod camera_test {
         let to = Tup::point(0, 0, 0);
         let up = Tup::vector(0, 1, 0);
         let transform = transforms::view_transform(from, to, up);
-        let camera = Camera::new(11, 11, consts::PI/2.0).with_transform(transform);
+        let camera = Camera::new(11, 11, consts::PI / 2.0).with_transform(transform);
         let image = camera.render(&world);
         assert_eq!(image.pixel_at(5, 5), Color::new(0.38066, 0.47583, 0.2855))
     }

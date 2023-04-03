@@ -6,29 +6,29 @@ mod lights;
 mod materials;
 mod math_helpers;
 mod matrix;
-mod rays;
 mod patterns;
 mod planes;
+mod rays;
 mod shapes;
 mod spheres;
-mod transforms;
 mod test_helpers;
+mod transforms;
 mod tup;
 mod world;
 
 use crate::camera::Camera;
 use crate::canvas::Canvas;
-use crate::color::Color;
 use crate::color::consts as col;
-use crate::planes::Plane;
+use crate::color::Color;
 use crate::lights::Light;
 use crate::materials::Material;
-use crate::tup::Tup;
 use crate::patterns::Pattern;
+use crate::planes::Plane;
 use crate::spheres::Sphere;
+use crate::tup::Tup;
 use crate::world::World;
-use std::fs;
 use std::f64::consts;
+use std::fs;
 
 fn background_material() -> Material {
     Material::default()
@@ -49,7 +49,6 @@ fn camera() -> Camera {
         .with_progress_logging()
 }
 
-
 fn middle_sphere() -> Sphere {
     let translation = transforms::translation(0.0, 0.85, -0.12);
     let color = Color::from_hex(0x8C11D9);
@@ -59,7 +58,7 @@ fn middle_sphere() -> Sphere {
         .with_color(color)
         .with_diffuse(diffuse)
         .with_specular(specular);
-       
+
     Sphere::default()
         .with_transform(translation)
         .with_material(material)
@@ -105,32 +104,30 @@ fn light_source() -> Light {
     Light::point_light(light_position, light_intensity)
 }
 
-fn plane_floor()-> Plane {
+fn plane_floor() -> Plane {
     const FLOOR_SPECULAR: f64 = 0.3;
     const FLOOR_SHININESS: f64 = 200.0;
-        
     let material = Material::default()
         .with_specular(FLOOR_SPECULAR)
         .with_shininess(FLOOR_SHININESS)
         .with_reflective(0.8);
-    
-    Plane::default()
-        .with_material(material)
+
+    Plane::default().with_material(material)
 }
 
 fn back_wall() -> Plane {
     const WALL_SPECULAR: f64 = 0.3;
     const WALL_SHININESS: f64 = 10.0;
     let wall_color = col::MAGENTA;
-    
+
     let material = Material::default()
         .with_specular(WALL_SPECULAR)
         .with_shininess(WALL_SHININESS)
         .with_color(wall_color);
 
-    let rot_x = transforms::rotation_x(consts::PI/2.0);
+    let rot_x = transforms::rotation_x(consts::PI / 2.0);
     let translate = transforms::translation(0, 0, 10);
-    
+
     Plane::default()
         .with_material(material)
         .with_transform(translate * rot_x)
@@ -142,8 +139,8 @@ fn plane_wall_color() -> Color {
 
 fn left_plane_wall() -> Plane {
     let translation = transforms::translation(0.0, 0.0, 10.0);
-    let rot_y = transforms::rotation_y(-consts::PI/4.0);
-    let rot_x = transforms::rotation_x(consts::PI/2.0);
+    let rot_y = transforms::rotation_y(-consts::PI / 4.0);
+    let rot_x = transforms::rotation_x(consts::PI / 2.0);
     let left_wall_transform = translation * rot_y * rot_x;
     let pattern = Pattern::checkers_pattern(col::BLACK, col::GREEN)
         .with_transform(transforms::scaling(0.4, 0.1, 1.0));
@@ -155,8 +152,8 @@ fn left_plane_wall() -> Plane {
 
 fn right_plane_wall() -> Plane {
     let translation = transforms::translation(0.0, 0.0, 10.0);
-    let rot_y = transforms::rotation_y(consts::PI/4.0);
-    let rot_x = transforms::rotation_x(consts::PI/2.0);
+    let rot_y = transforms::rotation_y(consts::PI / 4.0);
+    let rot_x = transforms::rotation_x(consts::PI / 2.0);
     let right_wall_transform = translation * rot_y * rot_x;
     let pattern = Pattern::ring_pattern(col::CYAN, col::MAGENTA)
         .with_transform(transforms::scaling(0.1, 0.1, 0.1));
@@ -165,7 +162,6 @@ fn right_plane_wall() -> Plane {
         .with_transform(right_wall_transform)
         .with_material(background_material().with_pattern(pattern))
 }
-
 
 fn spheres_in_a_corner() -> Canvas {
     let camera = camera();
@@ -189,4 +185,3 @@ fn main() -> std::io::Result<()> {
     fs::write(file_name, pixels)?;
     Ok(())
 }
-

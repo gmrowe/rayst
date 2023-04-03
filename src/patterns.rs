@@ -139,7 +139,6 @@ impl RingPattern {
     }
 }
 
-
 #[derive(PartialEq, Copy, Clone, Debug)]
 struct CheckersPattern {
     color_a: Color,
@@ -350,6 +349,4 @@ mod patterns_test {
         assert_eq!(color::WHITE, p.pattern_at(Tup::point(0.0, 0.0, 0.99)));
         assert_eq!(color::BLACK, p.pattern_at(Tup::point(0.0, 0.0, 1.01)));
     }
-
-    
 }

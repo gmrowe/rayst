@@ -406,7 +406,7 @@ mod intersections_test {
         let xs = Intersections::new(&[i.clone()]);
         let comps = i.prepare_computations(r, &xs);
         let under_point = comps.under_point();
-        assert!(under_point.z > EPSILON/2.0);
+        assert!(under_point.z > EPSILON / 2.0);
         assert!(comps.point().z < under_point.z)
     }
 }

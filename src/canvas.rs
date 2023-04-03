@@ -54,7 +54,8 @@ impl Canvas {
         if s.chars().count() < max_len {
             s.to_string()
         } else {
-            let break_index = s.rmatch_indices(' ')
+            let break_index = s
+                .rmatch_indices(' ')
                 .find(|(i, _)| *i < max_len)
                 .map(|(i, _)| i)
                 .unwrap_or(max_len - 1);

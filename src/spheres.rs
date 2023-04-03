@@ -1,9 +1,9 @@
+use crate::intersections::{Intersection, Intersections};
 use crate::materials::Material;
 use crate::matrix::Mat4;
-use crate::tup::Tup;
 use crate::rays::Ray;
-use crate::intersections::{Intersection, Intersections};
 use crate::shapes::Shape;
+use crate::tup::Tup;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 static ID_GEN: AtomicUsize = AtomicUsize::new(0);
@@ -24,23 +24,16 @@ impl Sphere {
         let glass_material = Material::default()
             .with_transparency(1.0)
             .with_refractive_index(1.5);
-        Self::default().with_material(glass_material)      
+        Self::default().with_material(glass_material)
     }
-    
+
     pub fn with_material(self, material: Material) -> Self {
-        Self {
-            material,
-            ..self
-        }
+        Self { material, ..self }
     }
 
     pub fn with_transform(self, transform: Mat4) -> Self {
-        Self {
-            transform,
-            ..self
-        }
+        Self { transform, ..self }
     }
-
 }
 
 impl Default for Sphere {
@@ -69,7 +62,7 @@ impl Shape for Sphere {
     fn set_material(&mut self, material: Material) {
         self.material = material;
     }
-    
+
     fn local_intersect(&self, local_ray: Ray) -> Intersections {
         let center_of_sphere = Tup::point(0.0, 0.0, 0.0);
         let sphere_to_ray_vec = local_ray.origin() - center_of_sphere;
@@ -84,9 +77,8 @@ impl Shape for Sphere {
             let t2 = Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), *self);
             Intersections::new(&vec![t1, t2])
         }
-   
     }
-    
+
     fn local_normal_at(&self, point: Tup) -> Tup {
         point - Tup::point(0, 0, 0)
     }
@@ -95,8 +87,8 @@ impl Shape for Sphere {
 #[cfg(test)]
 mod spheres_test {
     use super::*;
-    use crate::transforms;
     use crate::test_helpers::assert_nearly_eq;
+    use crate::transforms;
 
     #[test]
     fn two_spheres_are_not_the_same() {
@@ -138,14 +130,14 @@ mod spheres_test {
         assert_eq!(sphere.transform(), xs[0].object().transform());
         assert_eq!(sphere.material(), xs[1].object().material());
         assert_eq!(sphere.transform(), xs[1].object().transform());
-    }    
-    
+    }
+
     #[test]
     fn a_ray_intersecting_a_sphere_at_a_tangent_reutrns_two_intersections() {
         let ray = Ray::new(Tup::point(0.0, 1.0, -5.0), Tup::vector(0.0, 0.0, 1.0));
         let sphere = Sphere::default();
         let xs = sphere.intersect(&ray);
-        assert_eq!(2, xs.len());        
+        assert_eq!(2, xs.len());
     }
 
     #[test]
@@ -170,7 +162,7 @@ mod spheres_test {
         let ray = Ray::new(Tup::point(0.0, 0.0, 0.0), Tup::vector(0.0, 0.0, 1.0));
         let sphere = Sphere::default();
         let xs = sphere.intersect(&ray);
-        assert_eq!(2, xs.len());        
+        assert_eq!(2, xs.len());
     }
 
     #[test]
@@ -178,15 +170,15 @@ mod spheres_test {
         let ray = Ray::new(Tup::point(0.0, 0.0, 0.0), Tup::vector(0.0, 0.0, 1.0));
         let sphere = Sphere::default();
         let xs = sphere.intersect(&ray);
-        assert_nearly_eq(-1.0, xs[0].t());        
+        assert_nearly_eq(-1.0, xs[0].t());
     }
-    
+
     #[test]
     fn a_ray_originating_from_inside_a_sphere_intersects_in_positive_distance() {
         let ray = Ray::new(Tup::point(0.0, 0.0, 0.0), Tup::vector(0.0, 0.0, 1.0));
         let sphere = Sphere::default();
         let xs = sphere.intersect(&ray);
-        assert_nearly_eq(1.0, xs[1].t());        
+        assert_nearly_eq(1.0, xs[1].t());
     }
 
     #[test]
@@ -295,8 +287,7 @@ mod spheres_test {
 
     #[test]
     fn the_normal_on_a_translated_sphere() {
-        let s = Sphere::default()
-            .with_transform(transforms::translation(0, 1, 0));
+        let s = Sphere::default().with_transform(transforms::translation(0, 1, 0));
 
         let n = s.normal_at(Tup::point(0.0, 1.70711, -0.70711));
         assert_eq!(Tup::vector(0.0, 0.70711, -0.70711), n);
@@ -304,8 +295,8 @@ mod spheres_test {
 
     #[test]
     fn the_normal_on_a_transformed_sphere() {
-        let m =transforms::scaling(1.0, 0.5, 1.0)
-            * transforms::rotation_z(std::f64::consts::PI / 5.0);
+        let m =
+            transforms::scaling(1.0, 0.5, 1.0) * transforms::rotation_z(std::f64::consts::PI / 5.0);
         let s = Sphere::default().with_transform(m);
         let x = 2.0_f64.sqrt() / 2.0;
         let n = s.normal_at(Tup::point(0.0, x, -x));

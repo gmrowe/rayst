@@ -17,7 +17,7 @@ pub struct World {
 
 impl World {
     pub const MAX_BOUNCES: usize = 5;
-    
+
     pub fn with_light(self, light: Light) -> Self {
         Self { light, ..self }
     }
@@ -80,10 +80,12 @@ impl World {
         let intersections = self.intersect(ray);
         intersections
             .hit()
-            .map(|i| self.shade_hit(
-                &i.prepare_computations(ray, &intersections),
-                remaining_bounces)
-            )
+            .map(|i| {
+                self.shade_hit(
+                    &i.prepare_computations(ray, &intersections),
+                    remaining_bounces,
+                )
+            })
             .unwrap_or(col::BLACK)
     }
 
@@ -93,6 +95,11 @@ impl World {
         let ray = Ray::new(point, point_to_lightv.normalize());
         let inters = self.intersect(ray);
         inters.hit().map_or(false, |i| i.t() < distance)
+    }
+
+    pub fn refracted_color(&self, comps: &Computations, remaining_bounces: usize) -> Color {
+        let transparency = comps.object().material().transparency();
+        todo!()
     }
 }
 
@@ -277,7 +284,10 @@ mod world_test {
         let world = default_test_world().with_object(shape);
         let rad_2 = 2.0_f64.sqrt();
         let rad_2_over_2 = rad_2 / 2.0;
-        let r = Ray::new(Tup::point(0, 0, -3), Tup::vector(0.0, -rad_2_over_2, rad_2_over_2));
+        let r = Ray::new(
+            Tup::point(0, 0, -3),
+            Tup::vector(0.0, -rad_2_over_2, rad_2_over_2),
+        );
         let i = Intersection::new(rad_2, shape);
         let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
         let color = world.reflected_color(&comps, World::MAX_BOUNCES);
@@ -293,7 +303,10 @@ mod world_test {
         let world = default_test_world().with_object(shape);
         let rad_2 = 2.0_f64.sqrt();
         let rad_2_over_2 = rad_2 / 2.0;
-        let r = Ray::new(Tup::point(0, 0, -3), Tup::vector(0.0, -rad_2_over_2, rad_2_over_2));
+        let r = Ray::new(
+            Tup::point(0, 0, -3),
+            Tup::vector(0.0, -rad_2_over_2, rad_2_over_2),
+        );
         let i = Intersection::new(rad_2, shape);
         let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
         let color = world.shade_hit(&comps, World::MAX_BOUNCES);
@@ -318,17 +331,34 @@ mod world_test {
     }
 
     #[test]
-    fn the_reflected_color_at_max_recursion_depth() {
+    fn the_reflected_color_at_max_recursion_depth_is_black() {
         let shape = Plane::default()
             .with_material(Material::default().with_reflective(0.5))
             .with_transform(translation(0, -1, 0));
         let world = default_test_world().with_object(shape);
         let rad_2 = 2.0_f64.sqrt();
         let rad_2_over_2 = rad_2 / 2.0;
-        let r = Ray::new(Tup::point(0, 0, -3), Tup::vector(0.0, -rad_2_over_2, rad_2_over_2));
+        let r = Ray::new(
+            Tup::point(0, 0, -3),
+            Tup::vector(0.0, -rad_2_over_2, rad_2_over_2),
+        );
         let i = Intersection::new(rad_2, shape);
         let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
         let color = world.reflected_color(&comps, 0);
         assert_eq!(col::BLACK, color);
-    }    
-} 
+    }
+
+    #[test]
+    fn the_refracted_color_of_an_opaque_object_is_black() {
+        let w = default_test_world();
+        let shape = w[0].clone();
+        let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
+        let xs = Intersections::new(&[
+            Intersection::from_boxed_shape(4.0, shape.clone()),
+            Intersection::from_boxed_shape(6.0, shape.clone()),
+        ]);
+        let comps = xs[0].prepare_computations(r, &xs);
+        let color = w.refracted_color(&comps, World::MAX_BOUNCES);
+        assert_eq!(col::BLACK, color);
+    }
+}
