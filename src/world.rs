@@ -6,7 +6,7 @@ use crate::math_helpers::nearly_eq;
 use crate::rays::Ray;
 use crate::shapes::Shape;
 use crate::tup::Tup;
-use core::ops::{Index, IndexMut};
+use std::ops::{Index, IndexMut};
 
 type Object = Box<dyn Shape>;
 
@@ -54,7 +54,7 @@ impl World {
             comps.normalv(),
             shadowed,
         );
-        let reflection = self.reflected_color(&comps, remaining_bounces);
+        let reflection = self.reflected_color(comps, remaining_bounces);
         surface + reflection
     }
 
@@ -72,7 +72,7 @@ impl World {
         if remaining_bounces == 0 {
             col::BLACK
         } else {
-            self.calc_reflected(&comps, remaining_bounces)
+            self.calc_reflected(comps, remaining_bounces)
         }
     }
 
@@ -99,7 +99,17 @@ impl World {
 
     pub fn refracted_color(&self, comps: &Computations, remaining_bounces: usize) -> Color {
         let transparency = comps.object().material().transparency();
-        todo!()
+        let n_ratio = comps.n1() / comps.n2();
+        let cos_i = comps.eyev().dot(&comps.normalv());
+        let sin2_t = (n_ratio * n_ratio) * (1.0 - (cos_i * cos_i));
+        let total_internal_reflection = sin2_t > 1.0;
+        if remaining_bounces < 1 || total_internal_reflection || nearly_eq(0.0, transparency) {
+            return col::BLACK;
+        }
+        let cos_t = (1.0 - sin2_t).sqrt();
+        let direction = comps.normalv() * (n_ratio * cos_i - cos_t) - comps.eyev() * n_ratio;
+        let refract_ray = Ray::new(comps.under_point(), direction);
+        self.color_at(refract_ray, remaining_bounces - 1) * comps.object().material().transparency()
     }
 }
 
@@ -131,10 +141,12 @@ mod world_test {
     use super::*;
     use crate::intersections::Intersection;
     use crate::materials::Material;
+    use crate::patterns::Pattern;
     use crate::planes::Plane;
     use crate::spheres::Sphere;
     use crate::test_helpers::{assert_nearly_eq, default_test_world};
-    use crate::transforms::translation;
+    use crate::transforms::{self, translation};
+    use std::f64::consts;
 
     #[test]
     fn an_new_world_has_default_black_light_source() {
@@ -336,7 +348,8 @@ mod world_test {
             .with_material(Material::default().with_reflective(0.5))
             .with_transform(translation(0, -1, 0));
         let world = default_test_world().with_object(shape);
-        let rad_2 = 2.0_f64.sqrt();
+        // let rad_2 = 2.0_f64.sqrt();
+        let rad_2 = std::f64::consts::SQRT_2;
         let rad_2_over_2 = rad_2 / 2.0;
         let r = Ray::new(
             Tup::point(0, 0, -3),
@@ -360,5 +373,78 @@ mod world_test {
         let comps = xs[0].prepare_computations(r, &xs);
         let color = w.refracted_color(&comps, World::MAX_BOUNCES);
         assert_eq!(col::BLACK, color);
+    }
+
+    #[test]
+    fn the_refracted_color_at_max_recursive_depth_is_black() {
+        let w = default_test_world();
+        let shape = &w[0];
+        let material = shape.material();
+        material.with_transparency(1.0).with_refractive_index(1.5);
+        let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
+        let xs = Intersections::new(&[
+            Intersection::from_boxed_shape(4.0, shape.clone()),
+            Intersection::from_boxed_shape(6.0, shape.clone()),
+        ]);
+        let comps = xs[0].prepare_computations(r, &xs);
+        let color = w.refracted_color(&comps, 0);
+        assert_eq!(col::BLACK, color);
+    }
+
+    #[test]
+    fn the_refracted_color_under_total_internal_reflection_is_black() {
+        let w = default_test_world();
+        let shape = &w[0];
+        let material = shape.material();
+        material.with_transparency(1.0).with_refractive_index(1.5);
+        let rad_2_over_2 = consts::SQRT_2 / 2.0;
+        let r = Ray::new(Tup::point(0.0, 0.0, rad_2_over_2), Tup::vector(0, 1, 0));
+        let xs = Intersections::new(&[
+            Intersection::from_boxed_shape(-rad_2_over_2, shape.clone()),
+            Intersection::from_boxed_shape(rad_2_over_2, shape.clone()),
+        ]);
+        let comps = xs[1].prepare_computations(r, &xs);
+        let color = w.refracted_color(&comps, 5);
+        assert_eq!(col::BLACK, color);
+    }
+
+    fn refraction_test_world() -> World {
+        let light = Light::point_light(Tup::point(-10, 10, -10), Color::new(1, 1, 1));
+
+        let material_1 = Material::default()
+            .with_color(Color::new(0.8, 1.0, 0.6))
+            .with_diffuse(0.7)
+            .with_specular(0.2)
+            .with_ambient(1.0)
+            .with_pattern(Pattern::default());
+        let s1 = Sphere::default().with_material(material_1);
+
+        let transform = transforms::scaling(0.5, 0.5, 0.5);
+        let material_2 = Material::default()
+            .with_transparency(1.0)
+            .with_refractive_index(1.5);
+        let s2 = Sphere::default()
+            .with_transform(transform)
+            .with_material(material_2);
+
+        World::default()
+            .with_light(light)
+            .with_object(s1)
+            .with_object(s2)
+    }
+
+    #[test]
+    fn the_refracted_color_is_determined_from_a_refracted_ray() {
+        let w = refraction_test_world();
+        let r = Ray::new(Tup::point(0.0, 0.0, 0.1), Tup::vector(0, 1, 0));
+        let xs = Intersections::new(&[
+            Intersection::from_boxed_shape(-0.9899, w[0].clone()),
+            Intersection::from_boxed_shape(-0.4899, w[1].clone()),
+            Intersection::from_boxed_shape(0.4899, w[1].clone()),
+            Intersection::from_boxed_shape(0.9899, w[0].clone()),
+        ]);
+        let comps = xs[2].prepare_computations(r, &xs);
+        let color = w.refracted_color(&comps, 5);
+        assert_eq!(Color::new(0.0, 0.99888, 0.04722), color);
     }
 }
