@@ -26,7 +26,7 @@ impl Computations {
         let n = intersection.object().normal_at(point);
         let inside = n.dot(&eyev) < 0.0;
         let normalv = if inside { -n } else { n };
-        let (n1, n2) = Self::calc_n1_n2(&intersection, &xs);
+        let (n1, n2) = Self::calc_n1_n2(intersection, xs);
         Self {
             intersection: intersection.clone(),
             point,
@@ -156,7 +156,7 @@ impl Intersection {
         &self.object
     }
 
-    pub fn prepare_computations(&self, ray: Ray, xs: &Intersections) -> Computations {
+    pub fn prepare_computations(&self, ray: &Ray, xs: &Intersections) -> Computations {
         Computations::new(self, &ray, &xs)
     }
 }
@@ -256,7 +256,7 @@ mod intersections_test {
         let s = Sphere::default();
         let i1 = Intersection::new(1, s);
         let i2 = Intersection::new(2, s);
-        let xs = Intersections::new(&vec![i1, i2]);
+        let xs = Intersections::new(&[i1, i2]);
         let i = xs.hit();
         assert_eq!(1.0, i.expect("No hit occured").t());
     }
@@ -266,7 +266,7 @@ mod intersections_test {
         let s = Sphere::default();
         let i1 = Intersection::new(-1, s);
         let i2 = Intersection::new(1, s);
-        let xs = Intersections::new(&vec![i1, i2]);
+        let xs = Intersections::new(&[i1, i2]);
         let i = xs.hit();
         assert_eq!(1.0, i.expect("No hit occured").t());
     }
@@ -276,7 +276,7 @@ mod intersections_test {
         let s = Sphere::default();
         let i1 = Intersection::new(-2, s);
         let i2 = Intersection::new(-1, s);
-        let xs = Intersections::new(&vec![i1, i2]);
+        let xs = Intersections::new(&[i1, i2]);
         let i = xs.hit();
         assert!(i.is_none());
     }
@@ -288,7 +288,7 @@ mod intersections_test {
         let i2 = Intersection::new(7, s);
         let i3 = Intersection::new(-3, s);
         let i4 = Intersection::new(2, s);
-        let xs = Intersections::new(&vec![i1, i2, i3, i4]);
+        let xs = Intersections::new(&[i1, i2, i3, i4]);
         let i = xs.hit();
         assert_eq!(2.0, i.expect("No hit occured").t());
     }
@@ -298,7 +298,7 @@ mod intersections_test {
         let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
         let shape = Sphere::default();
         let i = Intersection::new(4, shape);
-        let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
+        let comps = i.prepare_computations(&r, &Intersections::new(&[i.clone()]));
         assert_eq!(comps.t(), i.t());
         assert_eq!(comps.object().material(), i.object().material());
         assert_eq!(comps.object().transform(), i.object().transform());
@@ -312,7 +312,7 @@ mod intersections_test {
         let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
         let shape = Sphere::default();
         let i = Intersection::new(4, shape);
-        let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
+        let comps = i.prepare_computations(&r, &Intersections::new(&[i.clone()]));
         assert!(!comps.inside());
     }
 
@@ -321,7 +321,7 @@ mod intersections_test {
         let r = Ray::new(Tup::point(0, 0, 0), Tup::vector(0, 0, 1));
         let shape = Sphere::default();
         let i = Intersection::new(1, shape);
-        let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
+        let comps = i.prepare_computations(&r, &Intersections::new(&[i.clone()]));
         assert_eq!(comps.point(), Tup::point(0, 0, 1));
         assert_eq!(comps.eyev(), Tup::vector(0, 0, -1));
         assert!(comps.inside());
@@ -333,7 +333,7 @@ mod intersections_test {
         let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
         let shape = Sphere::default().with_transform(transforms::translation(0, 0, 1));
         let i = Intersection::new(5, shape);
-        let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
+        let comps = i.prepare_computations(&r, &Intersections::new(&[i.clone()]));
         assert!(comps.over_point().z < -EPSILON / 2.0);
     }
 
@@ -342,7 +342,7 @@ mod intersections_test {
         let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
         let shape = Sphere::default().with_transform(transforms::translation(0, 0, 1));
         let i = Intersection::new(5, shape);
-        let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
+        let comps = i.prepare_computations(&r, &Intersections::new(&[i.clone()]));
         assert!(comps.point().z > comps.over_point().z);
     }
 
@@ -356,7 +356,7 @@ mod intersections_test {
             Tup::vector(0.0, -rad_2_over_2, rad_2_over_2),
         );
         let i = Intersection::new(rad_2, shape);
-        let comps = i.prepare_computations(r, &Intersections::new(&[i.clone()]));
+        let comps = i.prepare_computations(&r, &Intersections::new(&[i.clone()]));
         assert_eq!(
             comps.reflectv(),
             Tup::vector(0.0, rad_2_over_2, rad_2_over_2)
@@ -382,7 +382,7 @@ mod intersections_test {
             Intersection::new(5.25, inner_c),
             Intersection::new(6, outer_a),
         ]);
-        let comps = xs[i].prepare_computations(r, &xs);
+        let comps = xs[i].prepare_computations(&r, &xs);
         println!("n1 = {}, n2 = {}", comps.n1(), comps.n2());
         assert_nearly_eq(n1_expected, comps.n1());
         assert_nearly_eq(n2_expected, comps.n2());
@@ -404,9 +404,9 @@ mod intersections_test {
         let sphere = Sphere::glass_sphere().with_transform(transforms::translation(0, 0, 1));
         let i = Intersection::new(5, sphere);
         let xs = Intersections::new(&[i.clone()]);
-        let comps = i.prepare_computations(r, &xs);
+        let comps = i.prepare_computations(&r, &xs);
         let under_point = comps.under_point();
         assert!(under_point.z > EPSILON / 2.0);
-        assert!(comps.point().z < under_point.z)
+        assert!(comps.point().z < under_point.z);
     }
 }
