@@ -10,6 +10,7 @@ use std::ops::{Index, IndexMut};
 
 type Object = Box<dyn Shape>;
 
+#[derive(Debug)]
 pub struct World {
     light: Light,
     objects: Vec<Object>,
@@ -55,7 +56,8 @@ impl World {
             shadowed,
         );
         let reflection = self.reflected_color(comps, remaining_bounces);
-        surface + reflection
+        let refraction = self.refracted_color(comps, remaining_bounces);
+        surface + reflection + refraction
     }
 
     fn calc_reflected(&self, comps: &Computations, remaining_bounces: usize) -> Color {
@@ -408,7 +410,7 @@ mod world_test {
         assert_eq!(col::BLACK, color);
     }
 
-    fn refraction_test_world() -> World {
+    fn refracted_color_test_world() -> World {
         let light = Light::point_light(Tup::point(-10, 10, -10), Color::new(1, 1, 1));
 
         let material_1 = Material::default()
@@ -435,7 +437,7 @@ mod world_test {
 
     #[test]
     fn the_refracted_color_is_determined_from_a_refracted_ray() {
-        let w = refraction_test_world();
+        let w = refracted_color_test_world();
         let r = Ray::new(Tup::point(0.0, 0.0, 0.1), Tup::vector(0, 1, 0));
         let xs = Intersections::new(&[
             Intersection::from_boxed_shape(-0.9899, w[0].clone()),
@@ -446,5 +448,38 @@ mod world_test {
         let comps = xs[2].prepare_computations(&r, &xs);
         let color = w.refracted_color(&comps, 5);
         assert_eq!(Color::new(0.0, 0.99888, 0.04722), color);
+    }
+
+    fn shade_hit_refraction_test_world() -> World {
+        let floor_material = Material::default()
+            .with_transparency(0.5)
+            .with_refractive_index(1.5);
+        let floor = Plane::default()
+            .with_transform(transforms::translation(0, -1, 0))
+            .with_material(floor_material);
+
+        let ball_material = Material::default().with_color(col::RED).with_ambient(0.5);
+        let ball = Sphere::default()
+            .with_transform(transforms::translation(0.0, -3.5, -0.5))
+            .with_material(ball_material);
+
+        default_test_world().with_object(floor).with_object(ball)
+    }
+
+    #[test]
+    fn the_shaade_hit_color_is_determined_from_a_refracted_ray() {
+        let w = shade_hit_refraction_test_world();
+        dbg!(&w);
+        let rad_2_over_2 = consts::SQRT_2 / 2.0;
+        let r = Ray::new(
+            Tup::point(0.0, 0.0, -3.0),
+            Tup::vector(0.0, -rad_2_over_2, rad_2_over_2),
+        );
+        let xs =
+            Intersections::new(&[Intersection::from_boxed_shape(consts::SQRT_2, w[2].clone())]);
+        let comps = xs[0].prepare_computations(&r, &xs);
+        let color = w.shade_hit(&comps, 5);
+        let expected = Color::new(0.93642, 0.68642, 0.68642);
+        assert_eq!(expected, color);
     }
 }
