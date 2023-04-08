@@ -4,6 +4,7 @@ use rayst::color::consts as col;
 use rayst::color::Color;
 use rayst::lights::Light;
 use rayst::materials::Material;
+use rayst::math_helpers;
 use rayst::patterns::Pattern;
 use rayst::planes::Plane;
 use rayst::spheres::Sphere;
@@ -13,18 +14,13 @@ use rayst::world::World;
 use std::f64::consts;
 use std::fs;
 
-fn background_material() -> Material {
-    Material::default()
-        .with_color(Color::new(1.0, 0.9, 0.9))
-        .with_specular(0.0)
-}
+const CANVAS_WIDTH: usize = 300 * 2;
+const CANVAS_HEIGHT: usize = 180 * 2;
+const CAMERA_FIELD_OF_VIEW: f64 = consts::FRAC_PI_2 * 1.2;
 
 fn camera() -> Camera {
-    const CANVAS_WIDTH: usize = 400;
-    const CANVAS_HEIGHT: usize = 200;
-    const CAMERA_FIELD_OF_VIEW: f64 = consts::PI / 3.0;
-    let from = Tup::point(0.0, 1.5, -5.0);
-    let to = Tup::point(0.0, 1.0, 0.0);
+    let from = Tup::point(0.0, -0.8, -5.0);
+    let to = Tup::point(0.0, 0.0, 0.0);
     let up = Tup::vector(0.0, 1.0, 0.0);
     let camera_transform = transforms::view_transform(from, to, up);
     Camera::new(CANVAS_WIDTH, CANVAS_HEIGHT, CAMERA_FIELD_OF_VIEW)
@@ -32,53 +28,35 @@ fn camera() -> Camera {
         .with_progress_logging()
 }
 
-fn middle_sphere() -> Sphere {
-    let translation = transforms::translation(0.0, 0.85, -0.12);
-    let color = Color::from_hex(0x8C11D9);
+fn sphere(x: f64, y: f64, z: f64, color: Color) -> Sphere {
+    let radius = 0.55;
+    let ambient = 0.2;
     let diffuse = 0.7;
     let specular = 0.3;
+    let reflective = 0.2;
     let material = Material::default()
         .with_color(color)
         .with_diffuse(diffuse)
+        .with_reflective(reflective)
+        .with_ambient(ambient)
         .with_specular(specular);
 
     Sphere::default()
-        .with_transform(translation)
+        .with_transform(transforms::scaling(radius, radius, radius))
+        .with_transform(transforms::translation(x, y, z))
         .with_material(material)
 }
 
-fn right_sphere() -> Sphere {
-    let translation = transforms::translation(1.5, 0.5, -0.5);
-    let scaling = transforms::scaling(0.5, 0.5, 0.5);
-    let transform = translation * scaling;
-    let color = Color::new(0.5, 1.0, 0.1);
-    let diffuse = 0.7;
-    let specular = 0.3;
-    let material = Material::default()
-        .with_color(color)
-        .with_diffuse(diffuse)
-        .with_specular(specular);
-
-    Sphere::default()
-        .with_transform(transform)
-        .with_material(material)
-}
-
-fn left_sphere() -> Sphere {
-    let translation = transforms::translation(-1.5, 0.33, -0.75);
-    let scaling = transforms::scaling(0.33, 0.33, 0.33);
-    let transform = translation * scaling;
-    let color = Color::from_hex(0xE8D34D);
-    let diffuse = 0.7;
-    let specular = 0.3;
-    let material = Material::default()
-        .with_color(color)
-        .with_diffuse(diffuse)
-        .with_specular(specular);
-
-    Sphere::default()
-        .with_transform(transform)
-        .with_material(material)
+fn single_sphere() -> Canvas {
+    let camera = camera();
+    let mut world = World::default()
+        .with_light(light_source())
+        .with_object(sphere(0.0, 0.0, 0.0, col::RED))
+        .with_object(sphere(-2.5, 0.0, 2.5, col::BLUE))
+        .with_object(sphere(2.5, 0.0, 2.0, col::GREEN))
+        .with_object(sphere(0.0, -2.5, 0.0, col::MAGENTA))
+        .with_object(sphere(0.0, 2.5, 0.0, col::CYAN));
+    camera.render(&world)
 }
 
 fn light_source() -> Light {
@@ -87,83 +65,9 @@ fn light_source() -> Light {
     Light::point_light(light_position, light_intensity)
 }
 
-fn plane_floor() -> Plane {
-    const FLOOR_SPECULAR: f64 = 0.3;
-    const FLOOR_SHININESS: f64 = 200.0;
-    let material = Material::default()
-        .with_specular(FLOOR_SPECULAR)
-        .with_shininess(FLOOR_SHININESS)
-        .with_reflective(0.8);
-
-    Plane::default().with_material(material)
-}
-
-fn back_wall() -> Plane {
-    const WALL_SPECULAR: f64 = 0.3;
-    const WALL_SHININESS: f64 = 10.0;
-    let wall_color = col::MAGENTA;
-
-    let material = Material::default()
-        .with_specular(WALL_SPECULAR)
-        .with_shininess(WALL_SHININESS)
-        .with_color(wall_color);
-
-    let rot_x = transforms::rotation_x(consts::PI / 2.0);
-    let translate = transforms::translation(0, 0, 10);
-
-    Plane::default()
-        .with_material(material)
-        .with_transform(translate * rot_x)
-}
-
-fn plane_wall_color() -> Color {
-    col::CYAN + (col::GREEN * 0.25)
-}
-
-fn left_plane_wall() -> Plane {
-    let translation = transforms::translation(0.0, 0.0, 10.0);
-    let rot_y = transforms::rotation_y(-consts::PI / 4.0);
-    let rot_x = transforms::rotation_x(consts::PI / 2.0);
-    let left_wall_transform = translation * rot_y * rot_x;
-    let pattern = Pattern::checkers_pattern(col::BLACK, col::GREEN)
-        .with_transform(transforms::scaling(0.4, 0.1, 1.0));
-
-    Plane::default()
-        .with_transform(left_wall_transform)
-        .with_material(background_material().with_pattern(pattern))
-}
-
-fn right_plane_wall() -> Plane {
-    let translation = transforms::translation(0.0, 0.0, 10.0);
-    let rot_y = transforms::rotation_y(consts::PI / 4.0);
-    let rot_x = transforms::rotation_x(consts::PI / 2.0);
-    let right_wall_transform = translation * rot_y * rot_x;
-    let pattern = Pattern::ring_pattern(col::CYAN, col::MAGENTA)
-        .with_transform(transforms::scaling(0.1, 0.1, 0.1));
-
-    Plane::default()
-        .with_transform(right_wall_transform)
-        .with_material(background_material().with_pattern(pattern))
-}
-
-fn spheres_in_a_corner() -> Canvas {
-    let camera = camera();
-    let world = World::default()
-        .with_light(light_source())
-        .with_object(plane_floor())
-        .with_object(right_plane_wall())
-        .with_object(left_plane_wall())
-        .with_object(left_sphere())
-        .with_object(right_sphere())
-        .with_object(middle_sphere());
-
-    camera.render(&world)
-}
-
 fn main() -> std::io::Result<()> {
-    //let canvas = Canva
-    let image_name = "spheres_in_a_corner";
-    let canvas = spheres_in_a_corner();
+    let image_name = "sphere";
+    let canvas = single_sphere();
     let pixels = canvas.to_p6_ppm();
     let file_name = format!("{}.ppm", image_name);
     fs::write(file_name, pixels)?;
