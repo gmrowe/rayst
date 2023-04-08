@@ -1,11 +1,11 @@
-use crate::rayst::color::consts as col;
-use crate::rayst::color::Color;
-use crate::rayst::intersections::{Computations, Intersections};
-use crate::rayst::lights::Light;
-use crate::rayst::math_helpers::nearly_eq;
-use crate::rayst::rays::Ray;
-use crate::rayst::shapes::Shape;
-use crate::rayst::tup::Tup;
+use crate::color::consts as col;
+use crate::color::Color;
+use crate::intersections::{Computations, Intersections};
+use crate::lights::Light;
+use crate::math_helpers::nearly_eq;
+use crate::rays::Ray;
+use crate::shapes::Shape;
+use crate::tup::Tup;
 use std::ops::{Index, IndexMut};
 
 type Object = Box<dyn Shape>;
@@ -141,13 +141,13 @@ impl IndexMut<usize> for World {
 #[cfg(test)]
 mod world_test {
     use super::*;
-    use crate::rayst::intersections::Intersection;
-    use crate::rayst::materials::Material;
-    use crate::rayst::patterns::Pattern;
-    use crate::rayst::planes::Plane;
-    use crate::rayst::spheres::Sphere;
-    use crate::rayst::test_helpers::{assert_nearly_eq, default_test_world};
-    use crate::rayst::transforms::{self, translation};
+    use crate::intersections::Intersection;
+    use crate::materials::Material;
+    use crate::patterns::Pattern;
+    use crate::planes::Plane;
+    use crate::spheres::Sphere;
+    use crate::test_helpers::{assert_nearly_eq, default_test_world};
+    use crate::transforms::{self, translation};
     use std::f64::consts;
 
     #[test]

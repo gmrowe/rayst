@@ -1,15 +1,15 @@
-use rayst::rayst::camera::Camera;
-use rayst::rayst::canvas::Canvas;
-use rayst::rayst::color::consts as col;
-use rayst::rayst::color::Color;
-use rayst::rayst::lights::Light;
-use rayst::rayst::materials::Material;
-use rayst::rayst::patterns::Pattern;
-use rayst::rayst::planes::Plane;
-use rayst::rayst::spheres::Sphere;
-use rayst::rayst::transforms;
-use rayst::rayst::tup::Tup;
-use rayst::rayst::world::World;
+use rayst::camera::Camera;
+use rayst::canvas::Canvas;
+use rayst::color::consts as col;
+use rayst::color::Color;
+use rayst::lights::Light;
+use rayst::materials::Material;
+use rayst::patterns::Pattern;
+use rayst::planes::Plane;
+use rayst::spheres::Sphere;
+use rayst::transforms;
+use rayst::tup::Tup;
+use rayst::world::World;
 use std::f64::consts;
 use std::fs;
 

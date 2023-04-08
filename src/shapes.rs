@@ -1,8 +1,8 @@
-use crate::rayst::intersections::Intersections;
-use crate::rayst::materials::Material;
-use crate::rayst::matrix::Mat4;
-use crate::rayst::rays::Ray;
-use crate::rayst::tup::Tup;
+use crate::intersections::Intersections;
+use crate::materials::Material;
+use crate::matrix::Mat4;
+use crate::rays::Ray;
+use crate::tup::Tup;
 use std::fmt::Debug;
 
 pub trait Shape: ShapeClone + Debug {
@@ -56,7 +56,7 @@ impl Clone for Box<dyn Shape> {
 #[cfg(test)]
 mod shape_tests {
     use super::*;
-    use crate::rayst::transforms;
+    use crate::transforms;
     use core::f64::consts;
 
     static mut SAVED_RAY: Option<Ray> = None;

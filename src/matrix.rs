@@ -1,5 +1,5 @@
-use crate::rayst::math_helpers::nearly_eq;
-use crate::rayst::tup::Tup;
+use crate::math_helpers::nearly_eq;
+use crate::tup::Tup;
 use std::ops::{Index, IndexMut, Mul};
 
 #[derive(Debug, Copy, Clone)]
@@ -257,7 +257,7 @@ impl PartialEq for Mat2 {
 #[cfg(test)]
 mod matrix_tests {
     use super::*;
-    use crate::rayst::test_helpers::assert_nearly_eq;
+    use crate::test_helpers::assert_nearly_eq;
 
     #[test]
     fn construct_and_inspect_a_4x4_matrix() {

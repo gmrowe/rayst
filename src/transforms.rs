@@ -1,5 +1,5 @@
-use crate::rayst::matrix::Mat4;
-use crate::rayst::tup::Tup;
+use crate::matrix::Mat4;
+use crate::tup::Tup;
 
 pub fn translation<I: Into<f64>>(dx: I, dy: I, dz: I) -> Mat4 {
     let mut mat = Mat4::identity_matrix();
@@ -96,7 +96,7 @@ pub fn view_transform(from: Tup, to: Tup, up: Tup) -> Mat4 {
 #[cfg(test)]
 mod tramsforms_test {
     use super::*;
-    use crate::rayst::tup::Tup;
+    use crate::tup::Tup;
     use std::f64::consts;
 
     #[test]

@@ -1,11 +1,11 @@
-use crate::rayst::color::Color;
-use crate::rayst::lights::Light;
-use crate::rayst::materials::Material;
-use crate::rayst::math_helpers::nearly_eq;
-use crate::rayst::spheres::Sphere;
-use crate::rayst::transforms;
-use crate::rayst::tup::Tup;
-use crate::rayst::world::World;
+use crate::color::Color;
+use crate::lights::Light;
+use crate::materials::Material;
+use crate::math_helpers::nearly_eq;
+use crate::spheres::Sphere;
+use crate::transforms;
+use crate::tup::Tup;
+use crate::world::World;
 
 pub fn assert_nearly_eq(a: f64, b: f64) {
     assert!(nearly_eq(a, b));

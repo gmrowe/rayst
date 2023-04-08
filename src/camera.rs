@@ -1,8 +1,8 @@
-use crate::rayst::canvas::Canvas;
-use crate::rayst::matrix::Mat4;
-use crate::rayst::rays::Ray;
-use crate::rayst::tup::Tup;
-use crate::rayst::world::World;
+use crate::canvas::Canvas;
+use crate::matrix::Mat4;
+use crate::rays::Ray;
+use crate::tup::Tup;
+use crate::world::World;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Camera {

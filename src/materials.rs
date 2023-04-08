@@ -1,9 +1,9 @@
-use crate::rayst::color::consts;
-use crate::rayst::color::Color;
-use crate::rayst::lights::Light;
-use crate::rayst::matrix::Mat4;
-use crate::rayst::patterns::Pattern;
-use crate::rayst::tup::Tup;
+use crate::color::consts;
+use crate::color::Color;
+use crate::lights::Light;
+use crate::matrix::Mat4;
+use crate::patterns::Pattern;
+use crate::tup::Tup;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Material {
@@ -169,7 +169,7 @@ impl Default for Material {
 #[cfg(test)]
 mod materials_test {
     use super::*;
-    use crate::rayst::color::consts as color;
+    use crate::color::consts as color;
 
     #[test]
     fn default_material_has_a_color() {

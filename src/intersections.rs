@@ -1,7 +1,7 @@
-use crate::rayst::math_helpers::EPSILON;
-use crate::rayst::rays::Ray;
-use crate::rayst::shapes::Shape;
-use crate::rayst::tup::Tup;
+use crate::math_helpers::EPSILON;
+use crate::rays::Ray;
+use crate::shapes::Shape;
+use crate::tup::Tup;
 use std::ops::Index;
 
 type Object = Box<dyn Shape>;
@@ -217,11 +217,11 @@ impl Default for Intersections {
 #[cfg(test)]
 mod intersections_test {
     use super::*;
-    use crate::rayst::matrix::Mat4;
-    use crate::rayst::planes::Plane;
-    use crate::rayst::spheres::Sphere;
-    use crate::rayst::test_helpers::assert_nearly_eq;
-    use crate::rayst::transforms;
+    use crate::matrix::Mat4;
+    use crate::planes::Plane;
+    use crate::spheres::Sphere;
+    use crate::test_helpers::assert_nearly_eq;
+    use crate::transforms;
 
     #[test]
     fn an_intersection_encapsulates_a_t() {

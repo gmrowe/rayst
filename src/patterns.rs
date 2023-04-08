@@ -1,6 +1,6 @@
-use crate::rayst::color::Color;
-use crate::rayst::matrix::Mat4;
-use crate::rayst::tup::Tup;
+use crate::color::Color;
+use crate::matrix::Mat4;
+use crate::tup::Tup;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Pattern {
@@ -186,10 +186,10 @@ impl Patterns {
 #[cfg(test)]
 mod patterns_test {
     use super::*;
-    use crate::rayst::color::consts as color;
-    use crate::rayst::shapes::Shape;
-    use crate::rayst::spheres::Sphere;
-    use crate::rayst::transforms;
+    use crate::color::consts as color;
+    use crate::shapes::Shape;
+    use crate::spheres::Sphere;
+    use crate::transforms;
 
     #[test]
     fn a_stripe_pattern_can_be_created() {

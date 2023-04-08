@@ -1,4 +1,4 @@
-use crate::rayst::math_helpers::nearly_eq;
+use crate::math_helpers::nearly_eq;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Clone, Copy, Debug)]
@@ -149,7 +149,7 @@ impl Div<f64> for Tup {
 #[cfg(test)]
 mod tup_tests {
     use super::*;
-    use crate::rayst::test_helpers::assert_nearly_eq;
+    use crate::test_helpers::assert_nearly_eq;
 
     #[test]
     fn a_tup_stores_its_x_value() {

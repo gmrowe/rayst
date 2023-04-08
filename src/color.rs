@@ -1,4 +1,4 @@
-use crate::rayst::math_helpers::nearly_eq;
+use crate::math_helpers::nearly_eq;
 use std::ops::{Add, Mul, Sub};
 
 pub mod consts {
@@ -189,7 +189,7 @@ impl Mul<Color> for Color {
 #[cfg(test)]
 mod color_tests {
     use super::*;
-    use crate::rayst::test_helpers::assert_nearly_eq;
+    use crate::test_helpers::assert_nearly_eq;
     // fn assert_nearly_eq(a: f64, b: f64) {
     //     assert!((a - b).abs() < f64::EPSILON);
     // }

@@ -1,5 +1,5 @@
-use crate::rayst::color::Color;
-use crate::rayst::tup::Tup;
+use crate::color::Color;
+use crate::tup::Tup;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Light {

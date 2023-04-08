@@ -1,10 +1,10 @@
-use crate::rayst::intersections::{Intersection, Intersections};
-use crate::rayst::materials::Material;
-use crate::rayst::math_helpers::EPSILON;
-use crate::rayst::matrix::Mat4;
-use crate::rayst::rays::Ray;
-use crate::rayst::shapes::Shape;
-use crate::rayst::tup::Tup;
+use crate::intersections::{Intersection, Intersections};
+use crate::materials::Material;
+use crate::math_helpers::EPSILON;
+use crate::matrix::Mat4;
+use crate::rays::Ray;
+use crate::shapes::Shape;
+use crate::tup::Tup;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Plane {

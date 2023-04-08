@@ -1,5 +1,5 @@
-use crate::rayst::matrix::Mat4;
-use crate::rayst::tup::Tup;
+use crate::matrix::Mat4;
+use crate::tup::Tup;
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Ray {
@@ -32,7 +32,7 @@ impl Ray {
 #[cfg(test)]
 mod rays_test {
     use super::*;
-    use crate::rayst::transforms;
+    use crate::transforms;
 
     #[test]
     fn a_ray_has_an_origin() {

@@ -1,4 +1,4 @@
-use crate::rayst::color::Color;
+use crate::color::Color;
 
 pub struct Canvas {
     width: usize,

@@ -1,9 +1,9 @@
-use crate::rayst::intersections::{Intersection, Intersections};
-use crate::rayst::materials::Material;
-use crate::rayst::matrix::Mat4;
-use crate::rayst::rays::Ray;
-use crate::rayst::shapes::Shape;
-use crate::rayst::tup::Tup;
+use crate::intersections::{Intersection, Intersections};
+use crate::materials::Material;
+use crate::matrix::Mat4;
+use crate::rays::Ray;
+use crate::shapes::Shape;
+use crate::tup::Tup;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 static ID_GEN: AtomicUsize = AtomicUsize::new(0);
@@ -87,8 +87,8 @@ impl Shape for Sphere {
 #[cfg(test)]
 mod spheres_test {
     use super::*;
-    use crate::rayst::test_helpers::assert_nearly_eq;
-    use crate::rayst::transforms;
+    use crate::test_helpers::assert_nearly_eq;
+    use crate::transforms;
 
     #[test]
     fn two_spheres_are_not_the_same() {
