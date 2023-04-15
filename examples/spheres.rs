@@ -1,18 +1,19 @@
+use png::BitDepth;
+use png::ColorType;
+use png::Encoder;
 use rayst::camera::Camera;
 use rayst::canvas::Canvas;
 use rayst::color::consts as col;
 use rayst::color::Color;
 use rayst::lights::Light;
 use rayst::materials::Material;
-use rayst::math_helpers;
-use rayst::patterns::Pattern;
-use rayst::planes::Plane;
 use rayst::spheres::Sphere;
 use rayst::transforms;
 use rayst::tup::Tup;
 use rayst::world::World;
 use std::f64::consts;
-use std::fs;
+use std::fs::File;
+use std::io::BufWriter;
 
 const CANVAS_WIDTH: usize = 300 * 2;
 const CANVAS_HEIGHT: usize = 180 * 2;
@@ -47,9 +48,9 @@ fn sphere(x: f64, y: f64, z: f64, color: Color) -> Sphere {
         .with_material(material)
 }
 
-fn single_sphere() -> Canvas {
+fn floating_spheres() -> Canvas {
     let camera = camera();
-    let mut world = World::default()
+    let world = World::default()
         .with_light(light_source())
         .with_object(sphere(0.0, 0.0, 0.0, col::RED))
         .with_object(sphere(-2.5, 0.0, 2.5, col::BLUE))
@@ -65,11 +66,21 @@ fn light_source() -> Light {
     Light::point_light(light_position, light_intensity)
 }
 
-fn main() -> std::io::Result<()> {
-    let image_name = "sphere";
-    let canvas = single_sphere();
-    let pixels = canvas.to_p6_ppm();
-    let file_name = format!("{}.ppm", image_name);
-    fs::write(file_name, pixels)?;
+fn write_to_png(file_name: &str, canvas: &Canvas) -> std::io::Result<()> {
+    let pixels = canvas.as_rgb_pixels();
+    let file = File::create(file_name)?;
+    let ref mut w = BufWriter::new(file);
+    let mut encoder = Encoder::new(w, canvas.width() as u32, canvas.height() as u32);
+    encoder.set_color(ColorType::Rgb);
+    encoder.set_depth(BitDepth::Eight);
+    let mut writer = encoder.write_header()?;
+    writer.write_image_data(&pixels)?; // Save
+    writer.finish()?;
     Ok(())
+}
+
+fn main() -> std::io::Result<()> {
+    let image_name = "floating_spheres.png";
+    let canvas = floating_spheres();
+    write_to_png(image_name, &canvas)
 }
