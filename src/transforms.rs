@@ -201,7 +201,7 @@ mod tramsforms_test {
         let half_quarter: Mat4 = rotation_x(consts::PI / 4.0);
         let inverse = half_quarter.inverse();
         let p = Tup::point(0.0, 1.0, 0.0);
-        let expected = Tup::point(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
+        let expected = Tup::point(0.0, 2.0_f64.sqrt() / 2.0, -(2.0_f64.sqrt()) / 2.0);
         assert_eq!(expected, inverse * p);
     }
 
@@ -225,7 +225,7 @@ mod tramsforms_test {
     fn mutriplying_by_rotation_z_can_rotate_a_point_around_the_z_axis_one_eighth() {
         let half_quarter: Mat4 = rotation_z(consts::PI / 4.0);
         let p = Tup::point(0.0, 1.0, 0.0);
-        let expected = Tup::point(-2.0_f64.sqrt() / 2.0, 2.0_f64.sqrt() / 2.0, 0.0);
+        let expected = Tup::point(-(2.0_f64.sqrt()) / 2.0, 2.0_f64.sqrt() / 2.0, 0.0);
         assert_eq!(expected, half_quarter * p);
     }
 
@@ -346,7 +346,7 @@ mod tramsforms_test {
         let to = Tup::point(4, -2, 8);
         let up = Tup::vector(1, 1, 0);
         let t = view_transform(from, to, up);
-        let expected = Mat4::from_data(&vec![
+        let expected = Mat4::from_data(&[
             -0.50709, 0.50709, 0.67612, -2.36643, 0.76772, 0.60609, 0.12122, -2.82843, -0.35857,
             0.59761, -0.71714, 0.00000, 0.00000, 0.00000, 0.00000, 1.00000,
         ]);

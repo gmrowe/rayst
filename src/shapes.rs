@@ -61,19 +61,10 @@ mod shape_tests {
 
     static mut SAVED_RAY: Option<Ray> = None;
 
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, Default)]
     struct TestShape {
         transform: Option<Mat4>,
         material: Option<Material>,
-    }
-
-    impl Default for TestShape {
-        fn default() -> Self {
-            Self {
-                transform: None,
-                material: None,
-            }
-        }
     }
 
     impl Shape for TestShape {
@@ -173,8 +164,11 @@ mod shape_tests {
     fn the_normal_on_a_translated_shape_can_be_calculates() {
         let mut shape = TestShape::default();
         shape.set_transform(transforms::translation(0, 1, 0));
-        let n = shape.normal_at(Tup::point(0.0, 1.70711, -0.70711));
-        assert_eq!(Tup::vector(0.0, 0.70711, -0.70711), n);
+        let n = shape.normal_at(Tup::point(0.0, 1.70711, -consts::FRAC_1_SQRT_2));
+        assert_eq!(
+            Tup::vector(0.0, consts::FRAC_1_SQRT_2, -consts::FRAC_1_SQRT_2),
+            n
+        );
     }
 
     #[test]
@@ -183,7 +177,11 @@ mod shape_tests {
         let transform =
             transforms::scaling(1.0, 0.5, 1.0) * transforms::rotation_z(consts::PI / 5.0);
         shape.set_transform(transform);
-        let n = shape.normal_at(Tup::point(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0));
+        let n = shape.normal_at(Tup::point(
+            0.0,
+            2.0_f64.sqrt() / 2.0,
+            -(2.0_f64.sqrt()) / 2.0,
+        ));
         assert_eq!(Tup::vector(0.0, 0.97014, -0.24254), n);
     }
 }

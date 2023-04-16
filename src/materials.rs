@@ -220,7 +220,7 @@ mod materials_test {
     fn lighting_with_eye_between_light_and_surface_eye_offset_45_degrees() {
         let m = Material::default();
         let position = Tup::point(0, 0, 0);
-        let eyev = Tup::vector(0.0, 2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
+        let eyev = Tup::vector(0.0, 2.0_f64.sqrt() / 2.0, -(2.0_f64.sqrt()) / 2.0);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 0, -10), Color::new(1, 1, 1));
         let result = m.lighting(Mat4::default(), light, position, eyev, normalv, false);
@@ -251,7 +251,7 @@ mod materials_test {
     fn lighting_with_eye_in_path_of_reflection() {
         let m = Material::default();
         let position = Tup::point(0, 0, 0);
-        let eyev = Tup::vector(0.0, -2.0_f64.sqrt() / 2.0, -2.0_f64.sqrt() / 2.0);
+        let eyev = Tup::vector(0.0, -(2.0_f64.sqrt()) / 2.0, -(2.0_f64.sqrt()) / 2.0);
         let normalv = Tup::vector(0, 0, -1);
         let light = Light::point_light(Tup::point(0, 10, -10), Color::new(1, 1, 1));
         let result = m.lighting(Mat4::default(), light, position, eyev, normalv, false);

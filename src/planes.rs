@@ -6,7 +6,7 @@ use crate::rays::Ray;
 use crate::shapes::Shape;
 use crate::tup::Tup;
 
-#[derive(PartialEq, Copy, Clone, Debug)]
+#[derive(PartialEq, Copy, Clone, Debug, Default)]
 pub struct Plane {
     transform: Mat4,
     material: Material,
@@ -49,7 +49,7 @@ impl Shape for Plane {
             Intersections::default()
         } else {
             let t = -local_ray.origin().y / local_ray.direction().y;
-            Intersections::new(&vec![Intersection::new(t, *self)])
+            Intersections::new(&[Intersection::new(t, *self)])
         }
     }
 
@@ -65,15 +65,6 @@ impl Shape for Plane {
 
     fn local_normal_at(&self, _point: Tup) -> Tup {
         Tup::vector(0, 1, 0)
-    }
-}
-
-impl Default for Plane {
-    fn default() -> Self {
-        Self {
-            transform: Mat4::default(),
-            material: Material::default(),
-        }
     }
 }
 

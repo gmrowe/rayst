@@ -137,7 +137,7 @@ impl Computations {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Intersection {
     t: f64,
     object: Object,
@@ -174,10 +174,11 @@ impl Intersection {
     }
 
     pub fn prepare_computations(&self, ray: &Ray, xs: &Intersections) -> Computations {
-        Computations::new(self, &ray, &xs)
+        Computations::new(self, ray, xs)
     }
 }
 
+#[derive(Debug, Default)]
 pub struct Intersections {
     inters: Vec<Intersection>,
 }
@@ -205,6 +206,10 @@ impl Intersections {
         self.inters.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn hit(&self) -> Option<&Intersection> {
         self.inters
             .iter()
@@ -222,12 +227,6 @@ impl Index<usize> for Intersections {
 
     fn index(&self, i: usize) -> &Self::Output {
         &self.inters[i]
-    }
-}
-
-impl Default for Intersections {
-    fn default() -> Self {
-        Self { inters: Vec::new() }
     }
 }
 

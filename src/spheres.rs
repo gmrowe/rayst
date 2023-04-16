@@ -71,11 +71,11 @@ impl Shape for Sphere {
         let c = sphere_to_ray_vec.dot(&sphere_to_ray_vec) - 1.0;
         let discriminant = (b * b) - (4.0 * a * c);
         if discriminant < 0.0 {
-            Intersections::new(&vec![])
+            Intersections::default()
         } else {
             let t1 = Intersection::new((-b - discriminant.sqrt()) / (2.0 * a), *self);
             let t2 = Intersection::new((-b + discriminant.sqrt()) / (2.0 * a), *self);
-            Intersections::new(&vec![t1, t2])
+            Intersections::new(&[t1, t2])
         }
     }
 
@@ -86,6 +86,8 @@ impl Shape for Sphere {
 
 #[cfg(test)]
 mod spheres_test {
+    use std::f64::consts;
+
     use super::*;
     use crate::test_helpers::assert_nearly_eq;
     use crate::transforms;
@@ -289,8 +291,11 @@ mod spheres_test {
     fn the_normal_on_a_translated_sphere() {
         let s = Sphere::default().with_transform(transforms::translation(0, 1, 0));
 
-        let n = s.normal_at(Tup::point(0.0, 1.70711, -0.70711));
-        assert_eq!(Tup::vector(0.0, 0.70711, -0.70711), n);
+        let n = s.normal_at(Tup::point(0.0, 1.70711, -consts::FRAC_1_SQRT_2));
+        assert_eq!(
+            Tup::vector(0.0, consts::FRAC_1_SQRT_2, -consts::FRAC_1_SQRT_2),
+            n
+        );
     }
 
     #[test]

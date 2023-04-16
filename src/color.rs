@@ -95,6 +95,7 @@ impl Color {
         }
     }
 
+    #[allow(clippy::identity_op, clippy::erasing_op)]
     pub fn from_hex(hex_color: u32) -> Self {
         // Hex color format = 0xrrggbb
         let r = (hex_color >> (8 * 2) & 0xFF) as f64;

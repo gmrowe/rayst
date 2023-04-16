@@ -335,7 +335,7 @@ mod matrix_tests {
         let m = Mat4::from_data(&[
             0.0, 1.0, 2.0, 4.0, 1.0, 2.0, 4.0, 8.0, 2.0, 4.0, 8.0, 16.0, 4.0, 8.0, 16.0, 32.0,
         ]);
-        let result = m.clone() * Mat4::identity_matrix();
+        let result = m * Mat4::identity_matrix();
         assert_eq!(m, result);
     }
 
@@ -488,7 +488,7 @@ mod matrix_tests {
         let m_b = Mat4::from_data(&[
             8.0, 2.0, 2.0, 2.0, 3.0, -1.0, 7.0, 0.0, 7.0, 0.0, 5.0, 4.0, 6.0, -2.0, 0.0, 5.0,
         ]);
-        let product = m_a.clone() * m_b.clone();
+        let product = m_a * m_b;
         assert_eq!(m_a, product * m_b.inverse());
     }
 }
