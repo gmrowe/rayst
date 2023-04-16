@@ -118,6 +118,23 @@ impl Computations {
     pub fn under_point(&self) -> Tup {
         self.under_point
     }
+
+    pub fn schlick(&self) -> f64 {
+        let mut cos = self.eyev.dot(&self.normalv());
+        if self.n1 > self.n2 {
+            let n_ratio = self.n1 / self.n2;
+            let sin2_t = n_ratio * n_ratio * (1.0 - (cos * cos));
+            if sin2_t > 1.0 {
+                return 1.0;
+            }
+
+            let cos_t = (1.0 - sin2_t).sqrt();
+            cos = cos_t;
+        }
+        let r = (self.n1 - self.n2) / (self.n1 + self.n2);
+        let r0 = r * r;
+        r0 + (1.0 - r0) * (1.0 - cos).powf(5.0)
+    }
 }
 
 #[derive(Clone)]
@@ -216,6 +233,8 @@ impl Default for Intersections {
 
 #[cfg(test)]
 mod intersections_test {
+    use std::f64::consts;
+
     use super::*;
     use crate::matrix::Mat4;
     use crate::planes::Plane;
@@ -403,10 +422,45 @@ mod intersections_test {
         let r = Ray::new(Tup::point(0, 0, -5), Tup::vector(0, 0, 1));
         let sphere = Sphere::glass_sphere().with_transform(transforms::translation(0, 0, 1));
         let i = Intersection::new(5, sphere);
-        let xs = Intersections::new(&[i.clone()]);
-        let comps = i.prepare_computations(&r, &xs);
+        let xs = Intersections::new(&[i]);
+        let comps = xs[0].prepare_computations(&r, &xs);
         let under_point = comps.under_point();
         assert!(under_point.z > EPSILON / 2.0);
         assert!(comps.point().z < under_point.z);
+    }
+
+    #[test]
+    fn the_schlick_aprox_under_total_internal_reflection_is_1() {
+        let s = Sphere::glass_sphere();
+        let r = Ray::new(
+            Tup::point(0.0, 0.0, consts::SQRT_2 / 2.0),
+            Tup::vector(0, 1, 0),
+        );
+        let i1 = Intersection::new(-consts::SQRT_2 / 2.0, s);
+        let i2 = Intersection::new(consts::SQRT_2 / 2.0, s);
+        let xs = Intersections::new(&[i1, i2]);
+        let comps = xs[1].prepare_computations(&r, &xs);
+        let reflectance = comps.schlick();
+        assert_nearly_eq(reflectance, 1.0);
+    }
+
+    #[test]
+    fn the_schlick_approx_with_perpendicular_viewing_angle() {
+        let s = Sphere::glass_sphere();
+        let r = Ray::new(Tup::point(0, 0, 0), Tup::vector(0, 1, 0));
+        let xs = Intersections::new(&[Intersection::new(-1.0, s), Intersection::new(1.0, s)]);
+        let comps = xs[1].prepare_computations(&r, &xs);
+        let reflectance = comps.schlick();
+        assert_nearly_eq(reflectance, 0.04);
+    }
+
+    #[test]
+    fn the_schlick_approx_with_small_angle_and_n1_gt_n2() {
+        let s = Sphere::glass_sphere();
+        let r = Ray::new(Tup::point(0.0, 0.99, -2.0), Tup::vector(0, 0, 1));
+        let xs = Intersections::new(&[Intersection::new(1.8589, s)]);
+        let comps = xs[0].prepare_computations(&r, &xs);
+        let reflectance = comps.schlick();
+        assert_nearly_eq(reflectance, 0.48873);
     }
 }

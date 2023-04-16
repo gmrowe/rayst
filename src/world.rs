@@ -57,6 +57,11 @@ impl World {
         );
         let reflection = self.reflected_color(comps, remaining_bounces);
         let refraction = self.refracted_color(comps, remaining_bounces);
+        let material = comps.object().material();
+        if material.reflective() > 0.0 && material.transparency() > 0.0 {
+            let reflectance = comps.schlick();
+            return surface + (reflection * reflectance) + (refraction * (1.0 - reflectance));
+        }
         surface + reflection + refraction
     }
 
@@ -467,7 +472,7 @@ mod world_test {
     }
 
     #[test]
-    fn the_shaade_hit_color_is_determined_from_a_refracted_ray() {
+    fn the_shade_hit_color_is_determined_from_a_refracted_ray() {
         let w = shade_hit_refraction_test_world();
         dbg!(&w);
         let rad_2_over_2 = consts::SQRT_2 / 2.0;
@@ -481,5 +486,34 @@ mod world_test {
         let color = w.shade_hit(&comps, 5);
         let expected = Color::new(0.93642, 0.68642, 0.68642);
         assert_eq!(expected, color);
+    }
+
+    #[test]
+    fn shade_hit_with_a_reflective_transparent_material() {
+        let r = Ray::new(
+            Tup::point(0, 0, -3),
+            Tup::vector(0.0, -consts::SQRT_2 / 2.0, consts::SQRT_2 / 2.0),
+        );
+
+        // Floor
+        let floor_material = Material::default()
+            .with_reflective(0.5)
+            .with_transparency(0.5)
+            .with_refractive_index(1.5);
+        let floor = Plane::default()
+            .with_transform(translation(0, -1, 0))
+            .with_material(floor_material);
+
+        // Additional sphere
+        let ball_material = Material::default().with_color(col::RED).with_ambient(0.5);
+        let ball = Sphere::default()
+            .with_transform(translation(0.0, -3.5, -0.5))
+            .with_material(ball_material);
+
+        let w = default_test_world().with_object(floor).with_object(ball);
+        let xs = Intersections::new(&[Intersection::new(consts::SQRT_2, floor)]);
+        let comps = xs[0].prepare_computations(&r, &xs);
+        let color = w.shade_hit(&comps, 5);
+        assert_eq!(color, Color::new(0.93391, 0.69643, 0.69243));
     }
 }
