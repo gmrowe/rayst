@@ -9,8 +9,6 @@ use rayst::transforms;
 use rayst::tup::Tup;
 use rayst::world::World;
 use std::f64::consts;
-use std::fs::File;
-use std::io::BufWriter;
 
 const CANVAS_WIDTH: usize = 300 * 2;
 const CANVAS_HEIGHT: usize = 180 * 2;
