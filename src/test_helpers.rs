@@ -8,7 +8,10 @@ use crate::tup::Tup;
 use crate::world::World;
 
 pub fn assert_nearly_eq(a: f64, b: f64) {
-    assert!(nearly_eq(a, b));
+    assert!(
+        nearly_eq(a, b),
+        "assertion failed: `(left `nearly_eq` right)`\n  left: `{a}`\n right: `{b}`"
+    );
 }
 
 pub fn default_test_world() -> World {
