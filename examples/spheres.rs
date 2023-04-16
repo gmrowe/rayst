@@ -1,6 +1,3 @@
-use png::BitDepth;
-use png::ColorType;
-use png::Encoder;
 use rayst::camera::Camera;
 use rayst::canvas::Canvas;
 use rayst::color::consts as col;
@@ -66,21 +63,10 @@ fn light_source() -> Light {
     Light::point_light(light_position, light_intensity)
 }
 
-fn write_to_png(file_name: &str, canvas: &Canvas) -> std::io::Result<()> {
-    let pixels = canvas.as_rgb_pixels();
-    let file = File::create(file_name)?;
-    let ref mut w = BufWriter::new(file);
-    let mut encoder = Encoder::new(w, canvas.width() as u32, canvas.height() as u32);
-    encoder.set_color(ColorType::Rgb);
-    encoder.set_depth(BitDepth::Eight);
-    let mut writer = encoder.write_header()?;
-    writer.write_image_data(&pixels)?; // Save
-    writer.finish()?;
-    Ok(())
-}
-
 fn main() -> std::io::Result<()> {
     let image_name = "floating_spheres.png";
     let canvas = floating_spheres();
-    write_to_png(image_name, &canvas)
+    let pixels = canvas.to_png();
+    std::fs::write(image_name, pixels)?;
+    Ok(())
 }

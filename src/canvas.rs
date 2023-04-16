@@ -1,4 +1,6 @@
 use crate::color::Color;
+use pix::Raster;
+use png_pong::{Encoder, PngRaster};
 
 pub struct Canvas {
     width: usize,
@@ -99,6 +101,20 @@ impl Canvas {
         let header = format!("P6\n{} {}\n255\n", self.width(), self.height());
         let mut result = header.into_bytes();
         result.extend_from_slice(&self.as_rgb_pixels());
+        result
+    }
+
+    pub fn to_png(&self) -> Vec<u8> {
+        let raster = PngRaster::Rgb8(Raster::with_u8_buffer(
+            self.width() as u32,
+            self.height() as u32,
+            self.as_rgb_pixels(),
+        ));
+        let mut result = Vec::new();
+        let mut encoder = Encoder::new(&mut result).into_step_enc();
+        encoder
+            .still(&raster)
+            .expect("Should never fail to write to Vec<u8>");
         result
     }
 }
